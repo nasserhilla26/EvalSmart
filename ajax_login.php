@@ -1,0 +1,78 @@
+<?php
+session_start();
+include 'includes/db_connect.php';
+header('Content-Type: application/json');
+
+$email = mysqli_real_escape_string($conn, $_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
+
+if (!$email || !$password) {
+    echo json_encode(['success' => false, 'message' => 'Please enter email and password.']);
+    exit;
+}
+
+$sql = "SELECT * FROM users WHERE email='$email' AND status='Active' LIMIT 1";
+$result = mysqli_query($conn, $sql);
+
+if (mysqli_num_rows($result) !== 1) {
+    echo json_encode(['success' => false, 'message' => 'Email not found or inactive.']);
+    exit;
+}
+
+$user = mysqli_fetch_assoc($result);
+// error_log(print_r($user, true)); // debug purposes
+
+if (!password_verify($password, $user['password'])) {
+    echo json_encode(['success' => false, 'message' => 'Invalid password.']);
+    exit;
+}
+
+// Successful login
+// Store complete session info
+$_SESSION['user_id']   = (int)$user['user_id'];
+$_SESSION['first_name'] = $user['first_name'] ?? '';
+$_SESSION['last_name']  = $user['last_name'] ?? '';
+$_SESSION['full_name']  = trim($_SESSION['first_name'] . ' ' . $_SESSION['last_name']);
+$_SESSION['email']      = $user['email'];
+$_SESSION['department'] = $user['department'] ?? '';
+$_SESSION['position']   = $user['position'] ?? '';
+
+
+// Fetch all roles
+$roles = [];
+$role_query = mysqli_query($conn, "SELECT role_id FROM user_roles WHERE user_id = {$user['user_id']}");
+while ($r = mysqli_fetch_assoc($role_query)) {
+    $roles[] = (int)$r['role_id']; // ensure it's integer
+}
+
+if (empty($roles)) {
+    echo json_encode(['success' => false, 'message' => 'No roles assigned to this account.']);
+    exit;
+}
+
+$_SESSION['pending_roles'] = $roles;
+$_SESSION['roles'] = $roles;
+
+if (count($roles) === 1) {
+    // ✅ Only one role: assign and redirect
+    $_SESSION['active_role'] = $roles[0];
+    $role_id = (int)$roles[0];
+
+    // Force integer matching for PHP 8.0 compatibility
+    if ($role_id === 1) {
+        $redirect = 'admin/dashboard.php';
+    } elseif ($role_id === 2) {
+        $redirect = 'organizer/dashboard.php';
+    } elseif ($role_id === 3) {
+        $redirect = 'evaluator/dashboard.php';
+    } else {
+        $redirect = 'login.php';
+    }
+
+    echo json_encode(['success' => true, 'singleRole' => true, 'redirect' => $redirect]);
+    exit;
+}
+
+// ✅ Multiple roles: ask user to choose
+echo json_encode(['success' => true, 'singleRole' => false, 'roles' => $roles]);
+exit;

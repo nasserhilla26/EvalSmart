@@ -8,6 +8,13 @@ include '../includes/sidebar.php';
 include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
+
+
+// echo '<pre>';
+// print_r($_SESSION);
+// echo '</pre>';
+// exit;
+
 ?>
 
 <!-- Begin Page Content -->
