@@ -110,7 +110,7 @@ $(document).ready(function() {
     });
   });
 
-  // 🔮 Generate AI Summary
+  // Generate AI Summary
   $('#generateAI').click(function() {
     const eventId = $(this).data('event');
     if (!eventId) return;

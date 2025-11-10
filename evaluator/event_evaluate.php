@@ -8,7 +8,7 @@ include '../includes/sidebar.php';
 include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
-// 🧩 Get Event ID
+// Get Event ID
 if (!isset($_GET['id'])) {
   echo "<script>alert('Invalid request.'); window.location='dashboard.php';</script>";
   exit;
@@ -17,7 +17,7 @@ if (!isset($_GET['id'])) {
 $event_id = intval($_GET['id']);
 $user_id = $_SESSION['user_id'];
 
-// 🧠 Check if event exists
+// Check if event exists
 $event_query = mysqli_query($conn, "SELECT * FROM events WHERE event_id='$event_id'");
 if (mysqli_num_rows($event_query) == 0) {
   echo "<script>alert('Event not found.'); window.location='dashboard.php';</script>";
@@ -26,7 +26,7 @@ if (mysqli_num_rows($event_query) == 0) {
 
 $event = mysqli_fetch_assoc($event_query);
 
-// 🧠 Check if event has a questionnaire
+// Check if event has a questionnaire
 $q_link = mysqli_query($conn, "
   SELECT q.*
   FROM questionnaire q

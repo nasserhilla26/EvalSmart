@@ -46,8 +46,8 @@ include '../includes/db_connect.php';
           <div class="card-body">
             <h5 class="text-success">Quick Actions</h5>
             <ul class="list-group">
-              <li class="list-group-item"><a href="evaluate.php"><i class="fas fa-edit"></i> Evaluate Events</a></li>
-              <li class="list-group-item"><a href="my_evaluations.php"><i class="fas fa-history"></i> My Evaluations</a></li>
+              <li class="list-group-item"><a href="#"><i class="fas fa-edit"></i> Evaluate Events</a></li>
+              <li class="list-group-item"><a href="#"><i class="fas fa-history"></i> My Evaluations</a></li>
             </ul>
           </div>
         </div>
@@ -57,7 +57,7 @@ include '../includes/db_connect.php';
 
 <?php
 
-    $user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
 
 //Fetch all events that have assigned questionnaires
 $query = "
@@ -81,11 +81,7 @@ $query = "
 
 $result = mysqli_query($conn, $query);
 
-
 ?>
-
-
-
 
   <div class="card shadow mb-4">
     <div class="card-body table-responsive">

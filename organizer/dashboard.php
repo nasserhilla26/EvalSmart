@@ -36,8 +36,8 @@ include '../includes/topbar.php';
             <h5 class="text-success">Quick Actions</h5>
             <ul class="list-group">
               <li class="list-group-item"><a href="create_event.php"><i class="fas fa-calendar-plus"></i> Create Event</a></li>
-              <li class="list-group-item"><a href="my_events.php"><i class="fas fa-list"></i> My Events</a></li>
-              <li class="list-group-item"><a href="results.php"><i class="fas fa-poll"></i> View Evaluation Results</a></li>
+              <li class="list-group-item"><a href="manage_events.php"><i class="fas fa-list"></i> My Events</a></li>
+              <li class="list-group-item"><a href="view_results.php"><i class="fas fa-poll"></i> View Evaluation Results</a></li>
             </ul>
           </div>
         </div>

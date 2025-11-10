@@ -11,6 +11,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
 }
 
 include 'includes/db_connect.php';
+
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -31,6 +32,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $sql = "INSERT INTO users (last_name, first_name, email, password, role_id, department, position)
                 VALUES ('$last_name','$first_name', '$email', '$password', '$role_id', '$department - $sub_dept', '$position')";
         if (mysqli_query($conn, $sql)) {
+            $user_id = mysqli_insert_id($conn);
+
+            // Insert primary role
+            mysqli_query($conn, "INSERT INTO user_roles (user_id, role_id) VALUES ($user_id, $role_id)");
+
+            // If Organizer → also assign Evaluator role
+            if ($role_id === 2) {
+                mysqli_query($conn, 'INSERT INTO user_roles (user_id, role_id) VALUES ($user_id, 3)');
+            }
+
             $message = "Registration successful! You can now login.";
         } else {
             $message = "Error: " . mysqli_error($conn);

@@ -137,8 +137,8 @@ switch ($activeRole) {
   <?php if ($activeRole == 3): ?>
     <div class="sidebar-heading">Evaluation</div>
 
-    <li class="nav-item">
-      <a class="nav-link" href="../evaluator/event_evaluate.php">
+    <!-- <li class="nav-item">
+      <a class="nav-link" href="#">
         <i class="fas fa-edit"></i>
         <span>Evaluate Events</span>
       </a>
@@ -149,7 +149,7 @@ switch ($activeRole) {
         <i class="fas fa-history"></i>
         <span>My Evaluations</span>
       </a>
-    </li>
+    </li> -->
   <?php endif; ?>
 
   <hr class="sidebar-divider">

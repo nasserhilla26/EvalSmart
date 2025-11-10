@@ -30,14 +30,15 @@ Given the following participant evaluations, create:
 
 1. A concise 2–3 paragraph summary of overall feedback.
 2. A bullet list of the event’s key strengths.
-3. A bullet list of recommendations for improvement.
+3. A bullet list of the event’s key weekness.
+4. A bullet list of recommendations for improvement.
 Be polite, professional, and clear.
 
 Responses:
 $textData
 ";
 
-// 🔮 Send prompt to local Ollama (Llama3)
+// Send prompt to local Ollama (Llama3)
 $response = $openai_client->chat()->create([
     'model' => 'llama3',
     'messages' => [

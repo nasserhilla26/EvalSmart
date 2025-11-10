@@ -43,12 +43,14 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
           <?php if ($roleId != $_SESSION['active_role']): ?>
           <a class="dropdown-item switchRole" href="#" data-role="<?php echo $roleId; ?>">
             <i class="fas fa-exchange-alt fa-sm fa-fw me-2 text-gray-400"></i>Switch to <?php echo $roleName; ?></a>
+
+            <div class="dropdown-divider"></div>
           <?php endif; ?>
           <?php endforeach; ?>
           <?php endif; ?>
         
 
-          <div class="dropdown-divider"></div>
+          
 
           <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
             <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>Logout
