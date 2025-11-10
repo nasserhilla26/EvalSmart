@@ -68,6 +68,7 @@ $query = "
     e.event_description,
     q.title AS questionnaire_title,
     q.questionnaire_id,
+    q.created_at,
     (
       SELECT COUNT(*) 
       FROM evaluation_answers ea 
@@ -76,7 +77,7 @@ $query = "
   FROM events e
   JOIN event_questionnaire eq ON e.event_id = eq.event_id
   JOIN questionnaire q ON eq.questionnaire_id = q.questionnaire_id
-  ORDER BY e.event_date DESC
+  WHERE q.status = 'Approved' ORDER BY created_at DESC
 ";
 
 $result = mysqli_query($conn, $query);

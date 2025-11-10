@@ -18,7 +18,7 @@ $result = mysqli_query($conn, "
 
   <div class="card shadow mb-4">
     <div class="card-body table-responsive">
-      <table class="table table-bordered table-striped">
+      <table id="eventsTable" class="table table-bordered table-striped">
         <thead class="table-primary">
           <tr>
             <th>#</th>
@@ -50,3 +50,14 @@ $result = mysqli_query($conn, "
 </div>
 
 <?php include '../includes/footer.php'; ?>
+
+
+<script>
+$(document).ready(function() {
+  $('#eventsTable').DataTable({
+    pageLength: 10,
+    lengthMenu: [5, 10, 25, 50],
+    order: [[2, 'desc']]
+  });
+});
+</script>

@@ -1,6 +1,10 @@
 <?php
+include 'db_connect.php';
+
 $roleNames = [2=>'Organizer',3=>'Evaluator'];
 $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
+
+
 ?>
 
 
@@ -18,6 +22,38 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
 
     <!-- Topbar Navbar -->
     <ul class="navbar-nav ml-auto">
+
+
+    <?php
+    $user_id = $_SESSION['active_role'];
+    // $notifQuery = mysqli_query($conn, "
+    //   SELECT * FROM notifications WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 5
+    // ");
+    $unreadCount = mysqli_num_rows(mysqli_query($conn, "
+      SELECT * FROM notifications WHERE user_id='$user_id' AND is_read=0
+    "));
+    ?> 
+
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-bell fa-fw"></i>
+        <?php if ($unreadCount > 0): ?>
+          <span id="notifCount" class="badge bg-danger badge-counter"><?= $unreadCount ?></span>
+        <?php endif; ?>
+      </a>
+
+      <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="alertsDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+        <h6 class="dropdown-header">Notifications</h6>
+
+        <!-- This is the JS target container -->
+        <div id="notificationList" class="dropdown-list"></div>
+
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item text-center small text-gray-500" href="#">View All</a>
+      </div>
+    </li>
+
+    
 
       <!-- Divider -->
       <div class="topbar-divider d-none d-sm-block"></div>
@@ -117,7 +153,7 @@ document.addEventListener('click', async function (e) {
     });
 
     const data = await res.json();
-    console.log('Switch Role Response:', data); // 🧠 Debug check
+    console.log('Switch Role Response:', data); // Debug check
 
     if (data.success && data.redirect) {
       Swal.fire({
@@ -127,7 +163,7 @@ document.addEventListener('click', async function (e) {
         timer: 1500,
         showConfirmButton: false
       }).then(() => {
-        console.log('Redirecting to:', data.redirect); // 🧠 Debug check
+        console.log('Redirecting to:', data.redirect); // Debug check
         window.location.href = data.redirect;
       });
     } else {
@@ -138,4 +174,56 @@ document.addEventListener('click', async function (e) {
     Swal.fire({icon: 'error', title: 'Error', text: 'Server error occurred.'});
   }
 });
+
+
+// Notification trigger
+document.getElementById('alertsDropdown').addEventListener('click', async () => {
+  await fetch('../includes/mark_notifications_read.php');
+  loadNotifications();
+});
+
+
+async function loadNotifications() {
+  const response = await fetch('../includes/fetch_notifications.php');
+  const data = await response.json();
+
+  if (!data.success) return;
+
+  const notifList = document.getElementById('notificationList');
+  const notifBadge = document.getElementById('notifCount');
+
+  notifList.innerHTML = '';
+
+  if (notifBadge) {
+  notifBadge.textContent = data.unread_count > 0 ? data.unread_count : '';
+} // fuck this line. no notif when not commented out haha
+
+  if (data.notifications.length === 0) {
+    notifList.innerHTML = `<p class="text-center text-muted p-2 m-0">No new notifications</p>`;
+    return;
+  }
+
+  data.notifications.forEach(notif => {
+    const item = document.createElement('a');
+    item.href = notif.link || '#';
+    item.className = 'dropdown-item d-flex align-items-start small';
+    item.innerHTML = `
+      <div class="me-2">
+        <i class="fas fa-circle ${notif.is_read ? 'text-secondary' : 'text-primary'}"></i>
+      </div>
+      <div>
+        <div class="fw-bold">${notif.title}</div>
+        <div>${notif.message}</div>
+        <small class="text-muted">${notif.created_at}</small>
+      </div>
+    `;
+    notifList.appendChild(item);
+  });
+}
+
+// Load notifications on page load
+document.addEventListener('DOMContentLoaded', loadNotifications);
+
+
+
 </script>

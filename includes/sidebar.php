@@ -70,9 +70,9 @@ switch ($activeRole) {
     <div class="sidebar-heading">Admin Management</div>
 
     <li class="nav-item">
-      <a class="nav-link" href="../admin/users.php">
-        <i class="fas fa-users"></i>
-        <span>Manage Users</span>
+      <a class="nav-link" href="../admin/review_questionnaires.php">
+        <i class="fas fa-pen-alt"></i>
+        <span>Review Questionnaires</span>
       </a>
     </li>
 
@@ -80,6 +80,13 @@ switch ($activeRole) {
       <a class="nav-link" href="../admin/events.php">
         <i class="fas fa-calendar-alt"></i>
         <span>Manage Events</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="../admin/users.php">
+        <i class="fas fa-users"></i>
+        <span>Manage Users</span>
       </a>
     </li>
 

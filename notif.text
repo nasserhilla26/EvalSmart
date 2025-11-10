@@ -1,0 +1,35 @@
+<!-- <?php
+    $user_id = $_SESSION['user_id'];
+    $notifQuery = mysqli_query($conn, "
+      SELECT * FROM notifications WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 5
+    ");
+    $unreadCount = mysqli_num_rows(mysqli_query($conn, "
+      SELECT * FROM notifications WHERE user_id='$user_id' AND is_read=0
+    "));
+    ?> 
+
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-bell fa-fw"></i>
+        <?php if ($unreadCount > 0): ?>
+          <span class="badge bg-danger badge-counter"><?= $unreadCount ?></span>
+        <?php endif; ?>
+      </a>
+
+      <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="alertsDropdown">
+        <h6 class="dropdown-header">Notifications</h6>
+        <?php if (mysqli_num_rows($notifQuery) > 0): ?>
+          <?php while ($n = mysqli_fetch_assoc($notifQuery)): ?>
+            <a class="dropdown-item d-flex align-items-start" href="<?= $n['link'] ?>">
+              <div>
+                <div class="small text-gray-500"><?= date("F j, Y g:i A", strtotime($n['created_at'])) ?></div>
+                <span class="fw-bold text-<?= $n['type'] ?>"><?= htmlspecialchars($n['title']) ?></span><br>
+                <small><?= strip_tags($n['message']) ?></small>
+              </div>
+            </a>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <div class="dropdown-item text-center small text-gray-500">No notifications</div>
+        <?php endif; ?>
+      </div>
+    </li> -->

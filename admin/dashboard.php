@@ -38,6 +38,7 @@ include '../includes/topbar.php';
           <div class="card-body">
             <h5 class="text-success">Quick Actions</h5>
             <ul class="list-group">
+              <li class="list-group-item"><a href="review_questionnaires.php"><i class="fas fa-pen"></i> Review Questionnaires</a></li>
               <li class="list-group-item"><a href="users.php"><i class="fas fa-users"></i> Manage Users</a></li>
               <li class="list-group-item"><a href="events.php"><i class="fas fa-calendar-alt"></i> Manage Events</a></li>
               <li class="list-group-item"><a href="reports.php"><i class="fas fa-chart-line"></i> View Reports</a></li>

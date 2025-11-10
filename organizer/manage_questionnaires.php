@@ -27,6 +27,8 @@ SELECT
     q.description,
     q.created_by,
     q.created_at,
+    q.status,
+    q.admin_comment,
     (
         SELECT COUNT(*) 
         FROM questionnaire_questions qq 
@@ -68,6 +70,8 @@ $result = mysqli_query($conn, $query);
             <th>Description</th>
             <th>Questions</th>
             <th>Assigned To</th>
+            <th>Status</th>
+            <th width="80">Admin Comment</th>
             <th>Created At</th>
             <th width="180">Action</th>
           </tr>
@@ -122,6 +126,26 @@ $result = mysqli_query($conn, $query);
                 <?php else: ?>
                     <span class="badge bg-secondary">Unassigned</span>
                 <?php endif; ?>
+                </td>
+
+                <!-- Evaluation Status -->
+                <td>
+                  <?php if ($row['status'] == 'Approved'): ?>
+                    <span class="badge bg-success">Approved</span>
+                  <?php elseif ($row['status'] == 'Pending'): ?>
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  <?php else: ?>
+                    <span class="badge bg-danger">Modify</span>
+                  <?php endif; ?>
+                </td>
+
+                <td>
+                  <?php if (!empty($row['admin_comment'])): ?>
+                    <button class="btn btn-sm btn-info viewCommentBtn" 
+                            data-comment="<?php echo htmlspecialchars($row['admin_comment']); ?>">
+                      <i class="fas fa-comment-dots"></i>
+                    </button>
+                  <?php endif; ?>
                 </td>
 
 
@@ -233,6 +257,18 @@ $result = mysqli_query($conn, $query);
 </div>
 
 
+<!-- Admin Comment -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="commentLabel">Admin Feedback</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="commentText"></div>
+    </div>
+  </div>
+</div>
 
 <?php include '../includes/footer.php'; ?>
 
@@ -431,5 +467,14 @@ $(document).on('click', '.btn-unlink', function() {
 });
 
 
+// Admin comment trigger
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.viewCommentBtn')) {
+    const comment = e.target.closest('.viewCommentBtn').dataset.comment;
+    document.getElementById('commentText').innerText = comment;
+    new bootstrap.Modal(document.getElementById('commentModal')).show();
+  }
+});
 
 </script>
+
