@@ -11,7 +11,18 @@ $organizer_id = $_SESSION['user_id'];
 ?>
 
 <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Event Evaluation Results</h1>
+  
+  
+  <div class="row mb-2">
+    <div class="col">
+      <h1 class="h3 mb-4 text-gray-800">Event Evaluation Results</h1>
+    </div>
+    <div class="col text-end">
+      <a href="view_individual_results.php" class="btn btn-primary">
+        <i class="fas fa-eye"></i> Evaluator Response
+      </a>
+    </div>
+  </div>
 
   <div class="card shadow mb-4">
     <div class="card-body">

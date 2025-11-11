@@ -111,11 +111,11 @@ $result = mysqli_query($conn, $query);
                     ");
 
                     while ($ev = mysqli_fetch_assoc($events)): ?>
-                        <span class="badge bg-success me-1">
+                        <span class="badge bg-success m-1">
                         <?php echo htmlspecialchars($ev['event_title']); ?>
                         <button 
                             type="button" 
-                            class="btn btn-sm text-light btn-unlink ms-1" 
+                            class="btn btn-sm text-light btn-unlink" 
                             data-event="<?php echo $ev['event_id']; ?>" 
                             data-questionnaire="<?php echo $row['questionnaire_id']; ?>"
                             title="Unlink from this event">

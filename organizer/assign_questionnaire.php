@@ -76,7 +76,7 @@ $(document).ready(function() {
       data: $(this).serialize(),
       success: function(response) {
         Swal.fire({
-          icon: 'success',
+          icon: 'info',
           title: 'Questionnaire Assigned',
           text: response,
           confirmButtonColor: '#3085d6'

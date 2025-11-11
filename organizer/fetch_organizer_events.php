@@ -5,7 +5,7 @@ require_role(2);
 include '../includes/db_connect.php';
 
 $organizer_id = $_SESSION['user_id'];
-$result = mysqli_query($conn, "SELECT event_id, event_title FROM events WHERE organizer_id='$organizer_id' ORDER BY event_date DESC");
+$result = mysqli_query($conn, "SELECT event_id, event_title FROM events WHERE organizer_id='$organizer_id' AND status='Ongoing' ORDER BY event_date DESC");
 
 if (mysqli_num_rows($result) > 0) {
   echo '<option value="">-- Choose an Event --</option>';

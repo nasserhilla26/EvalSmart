@@ -223,7 +223,7 @@ async function loadNotifications() {
 
 // Load notifications on page load
 document.addEventListener('DOMContentLoaded', loadNotifications);
-
+setInterval(loadNotifications, 15000); //auto-refresh every 15secs for notif
 
 
 </script>
