@@ -70,7 +70,7 @@ $result = mysqli_query($conn, "
     </div>
 </div>
 
-<!-- 🟦 Review Modal -->
+<!-- Review Modal -->
 <div class="modal fade" id="reviewModal" tabindex="-1">
   <div class="modal-dialog">
     <form id="reviewForm" class="modal-content">
@@ -196,4 +196,4 @@ document.querySelectorAll('.viewBtn').forEach(btn => {
 });
 </script>
 
-<?php include '../includes/footer.php'; ?>
+

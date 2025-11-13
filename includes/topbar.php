@@ -29,17 +29,17 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
     // $notifQuery = mysqli_query($conn, "
     //   SELECT * FROM notifications WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 5
     // ");
-    $unreadCount = mysqli_num_rows(mysqli_query($conn, "
-      SELECT * FROM notifications WHERE user_id='$user_id' AND is_read=0
-    "));
+    // $unreadCount = mysqli_num_rows(mysqli_query($conn, "
+    //   SELECT * FROM notifications WHERE user_id='$user_id' AND is_read=0
+    // "));
     ?> 
 
     <li class="nav-item dropdown no-arrow mx-1">
       <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown">
         <i class="fas fa-bell fa-fw"></i>
-        <?php if ($unreadCount > 0): ?>
-          <span id="notifCount" class="badge bg-danger badge-counter"><?= $unreadCount ?></span>
-        <?php endif; ?>
+        <?php // if ($unreadCount > 0): ?> 
+          <span id="notifCount" class="badge bg-danger badge-counter"></span>
+        <?php //endif; ?>
       </a>
 
       <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="alertsDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">

@@ -12,7 +12,7 @@ include '../includes/db_connect.php';
 <div class="container-fluid">
   <h1 class="h3 mb-4 text-gray-800">Create Evaluation Questionnaire</h1>
 
-  <div class="card shadow mb-4 w-75">
+  <div class="card shadow mb-4">
     <div class="card-body">
       <form id="questionnaireForm">
         <!-- Questionnaire Details -->

@@ -25,6 +25,8 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
             'Symfony\\Contracts\\Service\\' => 26,
             'Symfony\\Contracts\\HttpClient\\' => 29,
             'Symfony\\Component\\HttpClient\\' => 29,
+            'Svg\\' => 4,
+            'Sabberworm\\CSS\\' => 15,
         ),
         'P' => 
         array (
@@ -42,6 +44,10 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
         array (
             'Nyholm\\Psr7\\' => 12,
         ),
+        'M' => 
+        array (
+            'Masterminds\\' => 12,
+        ),
         'H' => 
         array (
             'Http\\Message\\MultipartStream\\' => 29,
@@ -51,9 +57,14 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
         array (
             'GrahamCampbell\\ResultType\\' => 26,
         ),
+        'F' => 
+        array (
+            'FontLib\\' => 8,
+        ),
         'D' => 
         array (
             'Dotenv\\' => 7,
+            'Dompdf\\' => 7,
         ),
     );
 
@@ -86,6 +97,14 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
         array (
             0 => __DIR__ . '/..' . '/symfony/http-client',
         ),
+        'Svg\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/php-svg-lib/src/Svg',
+        ),
+        'Sabberworm\\CSS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
@@ -115,6 +134,10 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
         array (
             0 => __DIR__ . '/..' . '/nyholm/psr7/src',
         ),
+        'Masterminds\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/masterminds/html5/src',
+        ),
         'Http\\Message\\MultipartStream\\' => 
         array (
             0 => __DIR__ . '/..' . '/php-http/multipart-stream-builder/src',
@@ -127,9 +150,17 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
         ),
+        'FontLib\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/php-font-lib/src/FontLib',
+        ),
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
+        ),
+        'Dompdf\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dompdf/dompdf/src',
         ),
     );
 
@@ -145,6 +176,7 @@ class ComposerStaticInita524900e3ebd6a7f879e1e1fbac85c44
         'DateMalformedStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedStringException.php',
         'DateObjectError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateObjectError.php',
         'DateRangeError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateRangeError.php',
+        'Dompdf\\Cpdf' => __DIR__ . '/..' . '/dompdf/dompdf/lib/Cpdf.php',
         'Override' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/Override.php',
         'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
         'SQLite3Exception' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/SQLite3Exception.php',

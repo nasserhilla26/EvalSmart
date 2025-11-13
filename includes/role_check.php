@@ -14,7 +14,7 @@ function require_role($required_roles) {
         $required_roles = [$required_roles];
     }
 
-    // ✅ Use active_role for the currently chosen role (not all roles)
+    // Use active_role for the currently chosen role (not all roles)
     if (!isset($_SESSION['active_role'])) {
         header("Location: ../login.php");
         exit;

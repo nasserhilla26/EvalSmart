@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   <?php echo $message; ?>
 
-  <div class="card shadow mb-4 w-50">
+  <div class="card shadow mb-4">
     <div class="card-body">
       <form method="POST">
         <div class="mb-3">
@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <input type="text" name="event_venue" class="form-control" required>
         </div>
 
-        <button type="submit" class="btn btn-primary">Create Event</button>
+        <button type="submit" class="btn btn-primary">Save Event</button>
       </form>
     </div>
   </div>

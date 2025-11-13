@@ -15,13 +15,27 @@ $organizer_id = $_SESSION['user_id'];
   
   <div class="row mb-2">
     <div class="col">
-      <h1 class="h3 mb-4 text-gray-800">Event Evaluation Results</h1>
+      <h1 class="h3 mb-2 text-gray-800">Event Evaluation Results</h1>
+      
+      
     </div>
     <div class="col text-end">
-      <a href="view_individual_results.php" class="btn btn-primary">
+      <a href="view_individual_results.php" class="btn btn-primary mb-2">
         <i class="fas fa-eye"></i> Evaluator Response
       </a>
+
+      <div class="">
+      <form action="download_report.php" method="POST" target="_blank">
+        <input type="hidden" name="event_id" id="report_event_id">
+        <button type="submit" class="btn btn-outline-secondary">
+          <i class="fas fa-file-download"></i> Download Report (PDF)
+        </button>
+      </form>
     </div>
+
+
+    </div>
+    
   </div>
 
   <div class="card shadow mb-4">
@@ -31,10 +45,10 @@ $organizer_id = $_SESSION['user_id'];
         <select id="eventSelect" class="form-select">
           <option value="">-- Choose an event --</option>
           <?php
-          $events = mysqli_query($conn, "SELECT event_id, event_title FROM events WHERE organizer_id='$organizer_id' ORDER BY event_date DESC");
+          $events = mysqli_query($conn, "SELECT event_id, event_title FROM events WHERE organizer_id='$organizer_id' AND status='Completed' ORDER BY event_date DESC");
           while ($e = mysqli_fetch_assoc($events)):
           ?>
-            <option value="<?php echo $e['event_id']; ?>"><?php echo htmlspecialchars($e['event_title']); ?></option>
+            <option value="<?php echo $e['event_id']; ?>"><?php echo htmlspecialchars($e['event_title']); ?></option> 
           <?php endwhile; ?>
         </select>
       </div>
@@ -72,10 +86,20 @@ $organizer_id = $_SESSION['user_id'];
 <?php include '../includes/footer.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
 <script>
+
 $(document).ready(function() {
+  // When selecting a new event
   $('#eventSelect').change(function() {
     const eventId = $(this).val();
+
+    $('#report_event_id').val(eventId);
+
+    // Hide previous AI summary to avoid confusion
+    $('#aiResult').hide().find('#aiContent').empty();
+
     if (!eventId) {
       $('#resultsSection').hide();
       return;
@@ -112,7 +136,7 @@ $(document).ready(function() {
           }
           $('#feedbackSection').html(feedbackHtml);
 
-          // Attach AI data
+          // Attach event to Generate button
           $('#generateAI').data('event', eventId);
         } else {
           Swal.fire({ icon: 'info', title: 'No Data', text: data.message });
@@ -121,13 +145,49 @@ $(document).ready(function() {
     });
   });
 
-  // Generate AI Summary
+  // Generate or View Existing AI Summary
   $('#generateAI').click(function() {
     const eventId = $(this).data('event');
+    
+    
     if (!eventId) return;
 
+    $.ajax({
+      url: './fetch_ai_summary.php',
+      type: 'GET',
+      data: { event_id: eventId },
+      dataType: 'json',
+      success: function(ai) {
+        if (ai.success && ai.summary) {
+          Swal.fire({
+            title: 'AI Summary Already Exists',
+            text: 'A summary for this event already exists. Do you want to regenerate it?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Regenerate',
+            cancelButtonText: 'View Existing',
+            reverseButtons: true
+          }).then((result) => {
+            if (result.isConfirmed) {
+              generateAISummary(eventId, true);
+            } else {
+              showAISummary(ai.summary, ai.generated_on);
+            }
+          });
+        } else {
+          generateAISummary(eventId, false);
+        }
+      },
+      error: function() {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to check AI summary.' });
+      }
+    });
+  });
+
+  // 🔹 Helper: generate AI summary via Ollama
+  function generateAISummary(eventId, regenerate = false) {
     Swal.fire({
-      title: 'Generating AI Summary & Recommendation...',
+      title: regenerate ? 'Regenerating AI Summary...' : 'Generating AI Summary & Recommendation...',
       text: 'Please wait a few seconds.',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
@@ -139,22 +199,107 @@ $(document).ready(function() {
       data: { event_id: eventId },
       success: function(response) {
         Swal.close();
-        $('#aiResult').fadeIn(400);
-
-        // Format AI response (try to detect sections)
-        const formattedResponse = response
-          .replace(/Summary:/gi, '<h5 class="text-primary mt-1"><i class="fas fa-align-left me-2"></i>Summary</h5>')
-          .replace(/Strengths:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Strengths</h5><ul>')
-          .replace(/Recommendations:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
-          .replace(/\n/g, '<br>') // keep line breaks
-          .concat('</ul>');
-
-        $('#aiContent').html(formattedResponse);
+        showAISummary(response, new Date().toLocaleString());
       },
       error: function() {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to generate AI summary.' });
       }
     });
-  });
+  }
+
+  // 🔹 Helper: render AI summary card
+  function showAISummary(content, dateGenerated) {
+    $('#aiResult').fadeIn(400);
+    const formatted = content
+      .replace(/Summary:/gi, '<h5 class="text-primary mt-1"><i class="fas fa-align-left me-2"></i>Summary</h5>')
+      .replace(/Strengths:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Strengths</h5><ul>')
+      .replace(/Recommendations:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
+      .replace(/\n/g, '<br>')
+      .concat('</ul>');
+
+    $('#aiContent').html(`
+      <div class="text-end text-muted small mb-2">
+        <i class="fas fa-clock me-1"></i>Generated on: ${dateGenerated}
+      </div>
+      ${formatted}
+    `);
+  }
+
+
+
+
 });
+
+
+
+
+
+
+
+
+
+
+  // Generate AI Summary
+  // $('#generateAI').click(function() {
+  //   const eventId = $(this).data('event');
+  //   if (!eventId) return;
+
+  //   Swal.fire({
+  //     title: 'Generating AI Summary & Recommendation...',
+  //     text: 'Please wait a few seconds.',
+  //     allowOutsideClick: false,
+  //     didOpen: () => Swal.showLoading()
+  //   });
+
+  //   $.ajax({
+  //     url: 'ai_summary.php',
+  //     type: 'POST',
+  //     data: { event_id: eventId },
+  //     success: function(response) {
+  //       Swal.close();
+  //       $('#aiResult').fadeIn(400);
+
+  //       // Format AI response (try to detect sections)
+  //       const formattedResponse = response
+  //         .replace(/Summary:/gi, '<h5 class="text-primary mt-1"><i class="fas fa-align-left me-2"></i>Summary</h5>')
+  //         .replace(/Strengths:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Strengths</h5><ul>')
+  //         .replace(/Recommendations:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
+  //         .replace(/\n/g, '<br>') // keep line breaks
+  //         .concat('</ul>');
+
+  //       $('#aiContent').html(formattedResponse);
+  //     },
+  //     error: function() {
+  //       Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to generate AI summary.' });
+  //     }
+  //   });
+
+  //   // After building summary and comments
+  //   $.ajax({
+  //     url: './fetch_ai_summary.php',
+  //     type: 'GET',
+  //     data: { event_id: eventId },
+  //     dataType: 'json',
+  //     success: function(ai) {
+  //       if (ai.success && ai.summary) {
+  //         $('#aiResult').fadeIn(400);
+  //         $('#aiContent').html(ai.summary.replace(/\n/g, '<br>'));
+  //       } else {
+  //         $('#aiResult').hide();
+  //       }
+  //     }
+  //   });
+
+
+
+  // });
+
+
+
+
+
+
+
+
+
 </script>

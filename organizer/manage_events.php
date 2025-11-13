@@ -14,7 +14,7 @@ if (isset($_GET['delete'])) {
 }
 
 // Fetch Organizer Events
-$result = mysqli_query($conn, "SELECT * FROM events WHERE organizer_id='$organizer_id' ORDER BY event_date DESC");
+$result = mysqli_query($conn, "SELECT * FROM events WHERE organizer_id='$organizer_id' ORDER BY created_at DESC");
 ?>
 
 <div class="container-fluid">
