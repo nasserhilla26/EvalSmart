@@ -9,12 +9,6 @@ include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
 
-
-// echo '<pre>';
-// print_r($_SESSION);
-// echo '</pre>';
-// exit;
-
 ?>
 
 <!-- Begin Page Content -->
@@ -59,28 +53,70 @@ include '../includes/db_connect.php';
 
 $user_id = $_SESSION['user_id'];
 
-//Fetch all events that have assigned questionnaires
-$query = "
-  SELECT 
+$dept_full = $_SESSION['department'];  // e.g. "HED - BSIT"
+$pos_val   = $_SESSION['position'];    // Student / Faculty / Program Heads / NTP
+
+$dept_val = 'ALL';
+$prog_val = 'ALL';
+
+if (strpos($dept_full, ' - ') !== false) {
+    list($dept_val, $prog_val) = array_map('trim', explode(' - ', $dept_full));
+} else {
+    // Offices like "Offices - POD" also split here
+    $dept_val = trim($dept_full);
+}
+
+
+
+$sql = "
+SELECT 
     e.event_id,
     e.event_title,
     e.event_date,
     e.event_description,
     q.title AS questionnaire_title,
-    q.questionnaire_id,
-    q.created_at,
+    eq.id AS eq_id,
     (
-      SELECT COUNT(*) 
-      FROM evaluation_answers ea 
-      WHERE ea.event_id = e.event_id AND ea.user_id = '$user_id'
+        SELECT COUNT(*) 
+        FROM evaluation_answers ea 
+        WHERE ea.event_id = e.event_id 
+          AND ea.user_id = ?
     ) AS already_evaluated
-  FROM events e
-  JOIN event_questionnaire eq ON e.event_id = eq.event_id
-  JOIN questionnaire q ON eq.questionnaire_id = q.questionnaire_id
-  WHERE q.status = 'Approved' ORDER BY created_at DESC
+FROM events e
+JOIN event_questionnaire eq 
+    ON e.event_id = eq.event_id
+JOIN questionnaire q 
+    ON q.questionnaire_id = eq.questionnaire_id
+WHERE
+(
+    -- CASE 1: No targets exist → visible to ALL
+    NOT EXISTS (
+        SELECT 1 
+        FROM event_questionnaire_targets t 
+        WHERE t.event_questionnaire_id = eq.id
+    )
+
+    OR
+
+    -- CASE 2: Match one of the target rows
+    EXISTS (
+        SELECT 1
+        FROM event_questionnaire_targets t
+        WHERE t.event_questionnaire_id = eq.id
+          AND (t.department = 'ALL' OR t.department = ?)
+          AND (t.program    = 'ALL' OR t.program = ?)
+          AND (t.position   = 'ALL' OR t.position = ?)
+    )
+)
+ORDER BY e.event_date DESC
 ";
 
-$result = mysqli_query($conn, $query);
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("isss", $user_id, $dept_val, $prog_val, $pos_val);
+$stmt->execute();
+$result = $stmt->get_result();
+
 
 ?>
 

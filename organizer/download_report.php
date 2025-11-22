@@ -60,6 +60,8 @@ $aiSummary = $ai
     ? nl2br($ai['summary_text'] . "\n\n" . $ai['recommendations'])
     : '<em>No AI summary has been generated yet.</em>';
 
+$logoPath = 'assets/images/Pilar_College_seal.png';
+
 $html = "
 <style>
 body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #333; }
@@ -111,3 +113,5 @@ $filename = "EvalSmart_Report_{$eventTitle}.pdf";
 $dompdf->stream($filename, ["Attachment" => true]);
 exit;
 ?>
+
+

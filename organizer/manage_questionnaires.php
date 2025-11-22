@@ -20,6 +20,33 @@ $organizer_id = $_SESSION['user_id'];
 //   ORDER BY q.created_at DESC;
 // ";
 
+// first version
+// $query = "
+// SELECT 
+//     q.questionnaire_id,
+//     q.title,
+//     q.description,
+//     q.created_by,
+//     q.created_at,
+//     q.status,
+//     q.admin_comment,
+//     (
+//         SELECT COUNT(*) 
+//         FROM questionnaire_questions qq 
+//         WHERE qq.questionnaire_id = q.questionnaire_id
+//     ) AS total_questions,
+//     (
+//         SELECT GROUP_CONCAT(DISTINCT e.event_title SEPARATOR ', ')
+//         FROM event_questionnaire eq
+//         JOIN events e ON eq.event_id = e.event_id
+//         WHERE eq.questionnaire_id = q.questionnaire_id
+//     ) AS assigned_events
+// FROM questionnaire q
+// WHERE q.created_by = '$organizer_id'
+// ORDER BY q.created_at DESC;
+// ";
+
+
 $query = "
 SELECT 
     q.questionnaire_id,
@@ -29,17 +56,38 @@ SELECT
     q.created_at,
     q.status,
     q.admin_comment,
+
+    -- Count questions
     (
         SELECT COUNT(*) 
         FROM questionnaire_questions qq 
         WHERE qq.questionnaire_id = q.questionnaire_id
     ) AS total_questions,
+
+    -- Assigned events (comma list)
     (
         SELECT GROUP_CONCAT(DISTINCT e.event_title SEPARATOR ', ')
         FROM event_questionnaire eq
         JOIN events e ON eq.event_id = e.event_id
         WHERE eq.questionnaire_id = q.questionnaire_id
-    ) AS assigned_events
+    ) AS assigned_events,
+
+    -- ⭐ Pull eq.id for edit-targets modal
+    (
+        SELECT eq.id
+        FROM event_questionnaire eq
+        WHERE eq.questionnaire_id = q.questionnaire_id
+        LIMIT 1
+    ) AS eq_id,
+
+    -- ⭐ Pull event_id for unlink buttons / display
+    (
+        SELECT eq.event_id
+        FROM event_questionnaire eq
+        WHERE eq.questionnaire_id = q.questionnaire_id
+        LIMIT 1
+    ) AS event_id
+
 FROM questionnaire q
 WHERE q.created_by = '$organizer_id'
 ORDER BY q.created_at DESC;
@@ -47,17 +95,27 @@ ORDER BY q.created_at DESC;
 
 
 
-
 $result = mysqli_query($conn, $query);
 ?>
 
 <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Manage Questionnaires</h1>
 
-  <div class="text-end mb-3">
-    <a href="create_questionnaire.php" class="btn btn-primary">
+  <div class="row">
+    <div class="col"><h1 class="h3 mb-4 text-gray-800">Manage Questionnaires</h1></div>
+    <div class="col text-end">
+
+    <a href="create_questionnaire.php" class="btn btn-outline-primary mx-3">
       <i class="fas fa-plus"></i> Create New Questionnaire
     </a>
+
+    <a href="manage_targets.php" class="btn btn-secondary">
+      <i class="fas fa-eye"></i> Assign Evaluators
+    </a>
+
+
+    </div>
+
+    
   </div>
 
   <div class="card shadow mb-4">
@@ -67,13 +125,13 @@ $result = mysqli_query($conn, $query);
           <tr>
             <th>#</th>
             <th>Title</th>
-            <th>Description</th>
+            <!-- <th>Description</th> -->
             <th>Questions</th>
             <th>Assigned To</th>
             <th>Status</th>
             <th width="80">Admin Comment</th>
             <th>Created At</th>
-            <th width="180">Action</th>
+            <th width="200">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -83,7 +141,7 @@ $result = mysqli_query($conn, $query);
             <tr>
               <td><?php echo $i++; ?></td>
               <td><?php echo htmlspecialchars($row['title']); ?></td>
-              <td><?php echo htmlspecialchars($row['description']); ?></td>
+              <!-- <td><?php echo htmlspecialchars($row['description']); ?></td> -->
               <td><span class="badge bg-info"><?php echo $row['total_questions']; ?></span></td>
 
               <!-- <td>
@@ -174,7 +232,6 @@ $result = mysqli_query($conn, $query);
                 title="Assign to Event">
                 <i class="fas fa-link"></i>
                 </a>
-
 
                 <!-- Delete --> 
                 <button 
