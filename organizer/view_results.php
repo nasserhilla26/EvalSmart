@@ -13,30 +13,33 @@ $organizer_id = $_SESSION['user_id'];
 <div class="container-fluid">
   
   
-  <div class="row mb-2">
-    <div class="col">
-      <h1 class="h3 mb-2 text-gray-800">Event Evaluation Results</h1>
-      
-      
-    </div>
-    <div class="col text-end">
-      <a href="view_individual_results.php" class="btn btn-primary mb-2">
-        <i class="fas fa-eye"></i> Evaluator Response
-      </a>
+    <div class="row mb-2 ">
 
-      <div class="">
-      <form action="download_report.php" method="POST" target="_blank">
-        <input type="hidden" name="event_id" id="report_event_id">
-        <button type="submit" class="btn btn-outline-secondary">
-          <i class="fas fa-file-download"></i> Download Report (PDF)
-        </button>
-      </form>
-    </div>
+      <div class="col">
+        <h1 class="h3 mb-2 text-gray-800">Event Evaluation Results</h1>
+      </div>
 
+      <div class="col d-flex flex-wrap justify-content-end">
+        <a href="view_individual_results.php" class="btn btn-primary mb-2 mx-2">
+          <i class="fas fa-eye"></i> Evaluator Response
+        </a>
+      
+      <!-- Download report btn -->
+        <form action="download_report.php" method="POST" target="_blank">
+          <input type="hidden" name="event_id" id="report_event_id">
+          <button type="submit" class="btn btn-outline-danger">
+            <i class="fas fa-file-download"></i> Download Report (PDF)
+          </button>
+        </form>
+      </div>
+
+      <div>
+        <p><i><strong>Note: </strong>Only the completed events can generate results and report.</i></p>
+      </div>
 
     </div>
     
-  </div>
+  
 
   <div class="card shadow mb-4">
     <div class="card-body">
@@ -45,6 +48,9 @@ $organizer_id = $_SESSION['user_id'];
         <select id="eventSelect" class="form-select">
           <option value="">-- Choose an event --</option>
           <?php
+
+          
+
           $events = mysqli_query($conn, "SELECT event_id, event_title FROM events WHERE organizer_id='$organizer_id' AND status='Completed' ORDER BY event_date DESC");
           while ($e = mysqli_fetch_assoc($events)):
           ?>
@@ -66,7 +72,7 @@ $organizer_id = $_SESSION['user_id'];
           </button>
         </div>
 
-        <!-- 🧠 AI Summary Output -->
+        <!--  AI Summary Output -->
         <div id="aiResult" class="mt-4" style="display:none;">
           <div class="card shadow-lg border-0 rounded-4">
             <div class="card-body p-4">
@@ -85,7 +91,7 @@ $organizer_id = $_SESSION['user_id'];
 
 <?php include '../includes/footer.php'; ?>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
 
 
 <script>
@@ -116,7 +122,9 @@ $(document).ready(function() {
 
           // Build summary table
           let summaryHtml = '<table class="table table-bordered">';
-          summaryHtml += '<thead><tr><th>Question</th><th>Average Rating / Common Answer</th></tr></thead><tbody>';
+          summaryHtml += '<thead><tr><th>Question</th><th>Average Rating</th></tr></thead><tbody>';
+
+          $('#summaryData').html(summaryHtml);
 
           data.summary.forEach(item => {
             summaryHtml += `<tr><td>${item.question}</td><td>${item.value}</td></tr>`;
@@ -153,7 +161,7 @@ $(document).ready(function() {
     if (!eventId) return;
 
     $.ajax({
-      url: './fetch_ai_summary.php',
+      url: '../ai/fetch_ai_summary.php',
       type: 'GET',
       data: { event_id: eventId },
       dataType: 'json',
@@ -184,7 +192,7 @@ $(document).ready(function() {
     });
   });
 
-  // 🔹 Helper: generate AI summary via Ollama
+  // Helper: generate AI summary via Ollama
   function generateAISummary(eventId, regenerate = false) {
     Swal.fire({
       title: regenerate ? 'Regenerating AI Summary...' : 'Generating AI Summary & Recommendation...',
@@ -194,7 +202,7 @@ $(document).ready(function() {
     });
 
     $.ajax({
-      url: 'ai_summary.php',
+      url: '../ai/ai_summary.php',
       type: 'POST',
       data: { event_id: eventId },
       success: function(response) {
@@ -207,13 +215,14 @@ $(document).ready(function() {
     });
   }
 
-  // 🔹 Helper: render AI summary card
+  // Helper: render AI summary card
   function showAISummary(content, dateGenerated) {
     $('#aiResult').fadeIn(400);
     const formatted = content
       .replace(/Summary:/gi, '<h5 class="text-primary mt-1"><i class="fas fa-align-left me-2"></i>Summary</h5>')
       .replace(/Strengths:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Strengths</h5><ul>')
-      .replace(/Recommendations:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
+      .replace(/Weaknesses:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Weeknesses</h5><ul>')
+      .replace(/Recommendations for Improvement:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
       .replace(/\n/g, '<br>')
       .concat('</ul>');
 

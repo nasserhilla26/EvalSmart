@@ -40,6 +40,18 @@ switch ($activeRole) {
   default:
     $dashboardLink = "#";
 }
+
+
+$role = $_SESSION['active_role'] ?? 0;
+
+$dashboardLink = match($role) {
+    1 => '../admin/dashboard.php',
+    2 => '../organizer/dashboard.php',
+    3 => '../evaluator/dashboard.php',
+    default => '../login.php'
+};
+
+
 ?>
 
 <!-- Sidebar -->
@@ -48,7 +60,7 @@ switch ($activeRole) {
   <!-- Sidebar - Brand -->
   <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?php echo $dashboardLink; ?>">
     <div class="sidebar-brand-icon rotate-n-15">
-      <i class="fas fa-lightbulb"></i>
+      <i class="fas fa-pen"></i>
     </div>
     <div class="sidebar-brand-text mx-3">EvalSmart</div>
   </a>
@@ -84,7 +96,7 @@ switch ($activeRole) {
     </li>
 
     <li class="nav-item">
-      <a class="nav-link" href="../admin/users.php">
+      <a class="nav-link" href="../admin/manage_users.php">
         <i class="fas fa-users"></i>
         <span>Manage Users</span>
       </a>
@@ -160,6 +172,15 @@ switch ($activeRole) {
   <?php endif; ?>
 
   <hr class="sidebar-divider">
+
+  <li class="nav-item">
+      <a class="nav-link" href="../account/profile.php">
+        <i class="fas fa-cog"></i>
+        <span>Account Settings</span>
+      </a>
+    </li>
+
+
 </ul>
 <!-- End of Sidebar -->
 

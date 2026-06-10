@@ -1,7 +1,11 @@
 <?php
 include '../includes/auth.php';
 include '../includes/role_check.php';
-require_role(2);
+
+if (!in_array($_SESSION['active_role'], [1,2])) {
+    die("Unauthorized access");
+}
+
 include '../includes/db_connect.php';
 include '../includes/openai_config.php'; // Ollama connection
 
@@ -13,7 +17,7 @@ if (!$event_id) {
     exit;
 }
 
-// 🧩 Collect all responses
+// Collect all responses
 $query = mysqli_query($conn, "
   SELECT answer_text, comments, suggestions 
   FROM evaluation_answers 
@@ -27,23 +31,44 @@ while ($row = mysqli_fetch_assoc($query)) {
     if (!empty($row['suggestions'])) $textData .= "Suggestion: {$row['suggestions']}\n";
 }
 
-// 🧠 Prepare AI prompt
+// Prepare AI prompt
 $prompt = "
-You are EvalSmart AI, an academic feedback summarizer.
-Given the following participant evaluations, create:
+Analyze the following event evaluation responses and generate a professional evaluation report.
 
-1. A concise 2–3 paragraph summary of overall feedback.
-2. A bullet list of the event’s key strengths.
-3. A bullet list of the event’s key weaknesses.
-4. A bullet list of recommendations for improvement.
-Be polite, professional, and clear.
+IMPORTANT:
+Return the report EXACTLY in the following format.
+
+Summary:
+[Provide a concise overall summary of participant feedback in 1-2 paragraphs.]
+
+Key Strengths:
+- Strength 1
+- Strength 2
+- Strength 3
+
+Key Weaknesses:
+- Weakness 1
+- Weakness 2
+- Weakness 3
+
+Recommendations:
+- Recommendation 1
+- Recommendation 2
+- Recommendation 3
+
+Rules:
+1. Do not use Markdown symbols such as ** or ##.
+2. Use only the section titles exactly as written above.
+3. Use dash (-) bullets for strengths, weaknesses, and recommendations.
+4. Keep recommendations actionable and specific.
+5. Return only the report content. Do not include introductions or explanations.
 
 Responses:
 $textData
 ";
 
 try {
-    // 🧠 Generate AI Summary via Ollama Llama3
+    //  Generate AI Summary via Ollama Llama3
     $response = $openai_client->chat()->create([
         'model' => 'llama3',
         'messages' => [
@@ -59,30 +84,29 @@ try {
         exit;
     }
 
-    // 🪶 Optional: split recommendations section (if structured output is returned)
+    //  Optional: split recommendations section (if structured output is returned)
     $summary_text = $ai_output;
-    $recommendations = null;
+    // $recommendations = null;
 
     if (preg_match('/Recommendations:(.*)/is', $ai_output, $matches)) {
-        $recommendations = trim($matches[1]);
+        // $recommendations = trim($matches[1]);
         $summary_text = trim(str_replace($matches[0], '', $ai_output));
     }
 
-    // 🗄️ Store summary into ai_summary table
+    //  Store summary into ai_summary table
     $summary_text = mysqli_real_escape_string($conn, $summary_text);
-    $recommendations = $recommendations ? mysqli_real_escape_string($conn, $recommendations) : 'NULL';
+    // $recommendations = $recommendations ? mysqli_real_escape_string($conn, $recommendations) : 'NULL';
 
     $query = "
-        INSERT INTO ai_summary (event_id, summary_text, recommendations)
-        VALUES ('$event_id', '$summary_text', $recommendations)
+        INSERT INTO ai_summary (event_id, summary_text)
+        VALUES ('$event_id', '$summary_text')
         ON DUPLICATE KEY UPDATE
           summary_text = VALUES(summary_text),
-          recommendations = VALUES(recommendations),
           generated_on = NOW()
     ";
 
     if (mysqli_query($conn, $query)) {
-        echo $ai_output; // 👈 matches your existing frontend output (plain text)
+        echo $ai_output; // matches your existing frontend output (plain text)
     } else {
         echo "Error saving AI summary: " . mysqli_error($conn);
     }

@@ -9,6 +9,29 @@ include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
 
+$user_id = $_SESSION['user_id'];
+
+$pendingOrganizer = false;
+
+// Check if user has organizer role
+$checkOrg = mysqli_query($conn, "
+    SELECT * FROM user_roles 
+    WHERE user_id = $user_id AND role_id = 2
+");
+
+// Check if pending
+if (mysqli_num_rows($checkOrg) > 0) {
+    $userCheck = mysqli_query($conn, "
+        SELECT role_status FROM users WHERE user_id = $user_id
+    ");
+    $u = mysqli_fetch_assoc($userCheck);
+
+    if ($u['role_status'] === 'Pending') {
+        $pendingOrganizer = true;
+    }
+}
+
+
 ?>
 
 <!-- Begin Page Content -->
@@ -20,7 +43,15 @@ include '../includes/db_connect.php';
   </h1>
 
 
-
+  <?php if ($pendingOrganizer): ?>
+    <div class="alert alert-warning shadow-sm d-flex align-items-center" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <div>
+        Your organizer account is still <strong>pending approval</strong>. 
+        You are currently logged in as <strong>Evaluator</strong>.
+      </div>
+    </div>
+  <?php endif; ?>
 
 
     <!-- ===================== EVALUATOR SECTION ===================== -->

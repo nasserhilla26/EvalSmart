@@ -46,7 +46,7 @@ while ($row = mysqli_fetch_assoc($summaryQuery)) {
 }
 
 // 4. Fetch AI Summary (if exists)
-$aiQuery = mysqli_query($conn, "SELECT summary_text, recommendations, generated_on FROM ai_summary WHERE event_id='$event_id' LIMIT 1");
+$aiQuery = mysqli_query($conn, "SELECT summary_text, generated_on FROM ai_summary WHERE event_id='$event_id' LIMIT 1");
 $ai = mysqli_fetch_assoc($aiQuery);
 
 // 5. Build HTML for PDF
@@ -57,7 +57,7 @@ $eventDate = date('F j, Y', strtotime($event['event_date']));
 $generatedDate = date('F j, Y g:i A');
 
 $aiSummary = $ai
-    ? nl2br($ai['summary_text'] . "\n\n" . $ai['recommendations'])
+    ? nl2br($ai['summary_text'])
     : '<em>No AI summary has been generated yet.</em>';
 
 $logoPath = 'assets/images/Pilar_College_seal.png';

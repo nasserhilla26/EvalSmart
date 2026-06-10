@@ -17,10 +17,10 @@ if (!in_array($selected_role, $roles)) {
   exit;
 }
 
-// ✅ Only update active_role, do NOT reset session
+// Only update active_role, do NOT reset session
 $_SESSION['active_role'] = $selected_role;
 
-// ✅ Remove pending_roles only
+// Remove pending_roles only
 unset($_SESSION['pending_roles']);
 
 switch ($selected_role) {

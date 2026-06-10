@@ -5,6 +5,9 @@ include '../includes/sidebar.php';
 include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
+
+
+
 $organizer_id = $_SESSION['user_id'];
 
 // Handle Delete
@@ -212,6 +215,7 @@ $result = mysqli_query($conn, "SELECT * FROM events WHERE organizer_id='$organiz
           <div class="mb-3">
         <label for="event_status" class="form-label fw-bold">Select Status:</label>
         <select name="status" id="event_status" class="form-select" required>
+          <option value="Ongoing">Ongoing</option>
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
         </select>

@@ -4,7 +4,7 @@ include 'includes/db_connect.php';
 
 $message = "";
 
-// 🔹 Prevent redirect loop: Only redirect if user is *fully logged in* with an active role
+// Prevent redirect loop: Only redirect if user is *fully logged in* with an active role
 if (isset($_SESSION['user_id']) && isset($_SESSION['active_role'])) {
   switch ($_SESSION['active_role']) {
     case 1: header("Location: admin/dashboard.php"); exit;
@@ -54,6 +54,11 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['active_role'])) {
       <div class="text-center mt-3">
         <a href="register.php">Create an Account</a>
       </div>
+
+    <div class="text-center mt-2">
+  <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+</div>
+
     </div>
   </div>
 </div>
@@ -71,6 +76,34 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['active_role'])) {
     </div>
   </div>
 </div>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">Reset Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="forgotForm">
+          <label>Email Address</label>
+          <input type="email" name="email" class="form-control" required>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="sendResetBtn">
+          Send Reset Link
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -92,6 +125,14 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     Swal.fire({ icon: 'error', title: 'Login Failed', text: data.message });
     return;
   }
+
+  if (data.pending_organizer) {
+  Swal.fire({
+    icon: 'warning',
+    title: 'Pending Approval',
+    text: 'Your organizer account is still pending approval. You can still login as evaluator.'
+  });
+}
 
   // If user has only one role
   if (data.singleRole) {
@@ -135,6 +176,67 @@ document.addEventListener('click', async function(e) {
     Swal.fire({ icon: 'error', title: 'Error', text: data.message });
   }
 });
+
+
+// Forgot Password Modal
+
+// Open modal
+document.getElementById('forgotPasswordLink').addEventListener('click', function(e){
+  e.preventDefault();
+  new bootstrap.Modal(document.getElementById('forgotModal')).show();
+});
+
+// Send reset request
+document.getElementById('sendResetBtn').addEventListener('click', async function(){
+
+  const btn = this;
+  const form = document.getElementById('forgotForm');
+
+  // Disable button + show loading
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch('account/request_password_reset.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      Swal.fire({
+        icon: 'success',
+        title: 'Email Sent',
+        text: 'Check your email for reset instructions.'
+      });
+
+      form.reset();
+
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.message
+      });
+    }
+
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Server Error',
+      text: 'Something went wrong. Try again.'
+    });
+  }
+
+  // Restore button
+  btn.disabled = false;
+  btn.innerHTML = 'Send Reset Link';
+});
+
+
 </script>
 </body>
 </html>

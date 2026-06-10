@@ -40,7 +40,7 @@ $q_link = mysqli_query($conn, "
 <div class="container-fluid">
   <h1 class="h3 mb-4 text-gray-800">Event Evaluation</h1>
 
-  <div class="card shadow mb-4 w-75">
+  <div class="card shadow mb-4">
     <div class="card-body">
       <h4 class="fw-bold mb-2"><?php echo htmlspecialchars($event['event_title']); ?></h4>
       <p class="text-muted mb-4"><?php echo htmlspecialchars($event['event_description']); ?></p>
