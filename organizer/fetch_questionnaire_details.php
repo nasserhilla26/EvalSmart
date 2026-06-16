@@ -19,14 +19,46 @@ if (isset($_GET['id'])) {
 
     $qdata = mysqli_fetch_assoc($check);
 
-    // Fetch questions
+    // // Fetch questions
+    // $questions = [];
+    // $query = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE questionnaire_id='$id'");
+    // while ($row = mysqli_fetch_assoc($query)) {
+    //     $questions[] = [
+    //         "text" => $row['question_text'],
+    //         "type" => $row['question_type'],
+    //         "options" => $row['options'] ? json_decode($row['options'], true) : null
+    //     ];
+    // }
+
     $questions = [];
-    $query = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE questionnaire_id='$id'");
+
+    $query = mysqli_query($conn, "
+        SELECT
+            qq.*,
+            qc.category_name
+        FROM questionnaire_questions qq
+        LEFT JOIN questionnaire_categories qc
+            ON qq.category_id = qc.category_id
+        WHERE qq.questionnaire_id = '$id'
+        ORDER BY
+            qc.display_order ASC,
+            qq.question_id ASC
+    ");
+
     while ($row = mysqli_fetch_assoc($query)) {
-        $questions[] = [
+
+        $category = $row['category_name'] ?: 'General';
+
+        if (!isset($questions[$category])) {
+            $questions[$category] = [];
+        }
+
+        $questions[$category][] = [
             "text" => $row['question_text'],
             "type" => $row['question_type'],
-            "options" => $row['options'] ? json_decode($row['options'], true) : null
+            "options" => $row['options']
+                ? json_decode($row['options'], true)
+                : null
         ];
     }
 

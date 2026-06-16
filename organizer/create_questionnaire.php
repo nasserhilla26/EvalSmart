@@ -26,7 +26,28 @@ include '../includes/db_connect.php';
           <textarea name="description" class="form-control" rows="3" placeholder="Short description or purpose" required></textarea>
         </div>
 
+
+        <div class="card mb-3">
+          <div class="card-header">
+            <strong>Question Categories</strong>
+          </div>
+          <div class="card-body">
+
+            <div id="categoryContainer"></div>
+
+            <button type="button" class="btn btn-info" id="addCategoryBtn">
+              <i class="fas fa-folder-plus"></i> Add Category
+            </button>
+
+          </div>
+        </div>
+
+
+
         <hr>
+
+        
+
         <h5 class="mb-3">Add Questions</h5>
 
         <div id="questionContainer"></div>
@@ -53,6 +74,8 @@ include '../includes/db_connect.php';
 $(document).ready(function() {
   let questionCount = 0;
 
+  
+
   // ➕ Add Question Block
   $('#addQuestionBtn').click(function() {
     questionCount++;
@@ -64,6 +87,19 @@ $(document).ready(function() {
         </div>
 
         <div class="mb-3">
+
+        <div class="mb-3">
+          <label class="form-label">Category</label>
+
+          <select
+              name="questions[${questionCount}][category]"
+              class="form-select category-select">
+
+              <option value="">General</option>
+
+          </select>
+        </div>
+
           <label class="form-label">Question Text</label>
           <input type="text" name="questions[${questionCount}][text]" class="form-control" required>
         </div>
@@ -83,15 +119,21 @@ $(document).ready(function() {
         </div>
       </div>
     `;
+    
     $('#questionContainer').append(html);
+
+    // Refresh category dropdowns for newly added question
+    refreshCategoryDropdowns();
+
+
   });
 
-  // 🗑 Remove Question
+  //  Remove Question
   $(document).on('click', '.removeQuestion', function() {
     $(this).closest('.question-block').remove();
   });
 
-  // 🧩 Toggle Option Field for Multiple Choice
+  //  Toggle Option Field for Multiple Choice
   $(document).on('change', '.question-type', function() {
     const selectedType = $(this).val();
     const optionSection = $(this).closest('.question-block').find('.option-section');
@@ -102,7 +144,7 @@ $(document).ready(function() {
     }
   });
 
-  // 💾 Submit Questionnaire
+  //  Submit Questionnaire
   $('#questionnaireForm').on('submit', function(e) {
     e.preventDefault();
     $.ajax({
@@ -127,5 +169,81 @@ $(document).ready(function() {
       }
     });
   });
+
+  // add category
+  let categoryCount = 0;
+
+  $('#addCategoryBtn').click(function() {
+
+      categoryCount++;
+
+      $('#categoryContainer').append(`
+          <div class="input-group mb-2 category-row">
+              <input type="text"
+                    name="categories[]"
+                    class="form-control"
+                    placeholder="Category Name (Venue, Food, Speaker)"
+                    required>
+
+              <button type="button"
+                      class="btn btn-danger removeCategory">
+                  <i class="fas fa-trash"></i>
+              </button>
+          </div>
+      `);
+
+      refreshCategoryDropdowns();
+
+  });
+
+// remove category
+$(document).on('click', '.removeCategory', function() {
+
+    $(this).closest('.category-row').remove();
+
+    refreshCategoryDropdowns();
 });
+
+  // Refresh dropdowns while typing category names
+$(document).on('input', 'input[name="categories[]"]', function() {
+    refreshCategoryDropdowns();
+});
+
+  
+
+// Auto populate category dropdowns
+function refreshCategoryDropdowns() {
+
+    $('.category-select').each(function() {
+
+        let currentValue = $(this).val();
+
+        let options = '<option value="">General</option>';
+
+        $('input[name="categories[]"]').each(function() {
+
+            let val = $(this).val().trim();
+
+            if (val !== '') {
+                options += `<option value="${val}">${val}</option>`;
+            }
+        });
+
+        $(this).html(options);
+
+        // Restore previous selection if still exists
+        if (currentValue) {
+            $(this).val(currentValue);
+        }
+    });
+}
+
+  
+refreshCategoryDropdowns();
+
+});
+
+
+
+
 </script>

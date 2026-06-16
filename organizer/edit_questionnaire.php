@@ -7,7 +7,10 @@ include '../includes/sidebar.php';
 include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
-// 🧩 Get questionnaire ID
+
+
+
+// Get questionnaire ID
 if (!isset($_GET['id'])) {
     echo "<script>alert('Invalid request.'); window.location='manage_questionnaires.php';</script>";
     exit;
@@ -16,7 +19,26 @@ if (!isset($_GET['id'])) {
 $id = intval($_GET['id']);
 $organizer_id = $_SESSION['user_id'];
 
-// 🧠 Validate ownership
+
+//disable the edit page when questionnaires is already link the event or has responses
+$check = mysqli_query($conn,"
+    SELECT COUNT(*) AS total
+    FROM event_questionnaire
+    WHERE questionnaire_id='$id'
+");
+
+$row = mysqli_fetch_assoc($check);
+
+if($row['total'] > 0){
+    die("
+        <div class='alert alert-danger m-4'>
+            This questionnaire is already assigned to an event and can no longer be modified.
+        </div>
+    ");
+}
+
+
+// Validate ownership
 $query = mysqli_query($conn, "SELECT * FROM questionnaire WHERE questionnaire_id='$id' AND created_by='$organizer_id'");
 if (mysqli_num_rows($query) == 0) {
     echo "<script>alert('Unauthorized access.'); window.location='manage_questionnaires.php';</script>";
@@ -26,13 +48,33 @@ if (mysqli_num_rows($query) == 0) {
 $questionnaire = mysqli_fetch_assoc($query);
 
 // Fetch questions
-$questions = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE questionnaire_id='$id'");
+// $questions = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE questionnaire_id='$id'");
+
+
+$questions = mysqli_query($conn, "
+    SELECT
+        qq.*,
+        qc.category_name
+    FROM questionnaire_questions qq
+    LEFT JOIN questionnaire_categories qc
+        ON qq.category_id = qc.category_id
+    WHERE qq.questionnaire_id='$id'
+    ORDER BY qq.question_id ASC
+");
+
+$categories = mysqli_query($conn, "
+    SELECT *
+    FROM questionnaire_categories
+    WHERE questionnaire_id='$id'
+    ORDER BY display_order ASC
+"); 
+
 ?>
 
 <div class="container-fluid">
   <h1 class="h3 mb-4 text-gray-800">Edit Questionnaire</h1>
 
-  <div class="card shadow mb-4 w-75">
+  <div class="card shadow mb-4">
     <div class="card-body">
       <form id="editQuestionnaireForm">
         <input type="hidden" name="questionnaire_id" value="<?php echo $id; ?>">
@@ -46,6 +88,56 @@ $questions = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE qu
           <label class="form-label fw-bold">Description:</label>
           <textarea name="description" class="form-control" rows="3" required><?php echo htmlspecialchars($questionnaire['description']); ?></textarea>
         </div>
+
+<!-- Category section -->
+        <hr>
+
+        <h5 class="mb-3">Question Categories</h5>
+
+        <div class="card mb-3">
+          <div class="card-body">
+
+            <div id="categoryContainer">
+
+              <?php while($cat = mysqli_fetch_assoc($categories)): ?>
+
+              <div class="input-group mb-2 category-row">
+
+                <input
+                    type="text"
+                    name="categories[]"
+                    class="form-control"
+                    value="<?php echo htmlspecialchars($cat['category_name']); ?>"
+                    placeholder="Category Name">
+
+                <button
+                    type="button"
+                    class="btn btn-danger removeCategory">
+
+                    <i class="fas fa-trash"></i>
+
+                </button>
+
+              </div>
+
+              <?php endwhile; ?>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-info"
+                id="addCategoryBtn">
+
+                <i class="fas fa-folder-plus"></i>
+                Add Category
+
+            </button>
+
+          </div>
+        </div>
+        <!-- category Section -->
+
 
         <hr>
         <h5 class="mb-3">Questions</h5>
@@ -62,6 +154,41 @@ $questions = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE qu
                 <h6>Question <?php echo $count; ?></h6>
                 <button type="button" class="btn btn-danger btn-sm removeQuestion"><i class="fas fa-trash"></i></button>
               </div>
+
+
+              <div class="mb-3">
+                <label class="form-label">Category</label>
+
+                <select
+                    name="questions[<?php echo $count; ?>][category]"
+                    class="form-select category-select">
+
+                    <option value="">General</option>
+
+                    <?php
+                    $catQuery = mysqli_query($conn,"
+                        SELECT *
+                        FROM questionnaire_categories
+                        WHERE questionnaire_id='$id'
+                        ORDER BY display_order
+                    ");
+
+                    while($cat = mysqli_fetch_assoc($catQuery)):
+                    ?>
+
+                    <option
+                        value="<?php echo htmlspecialchars($cat['category_name']); ?>"
+                        <?php echo ($q['category_name'] == $cat['category_name']) ? 'selected' : ''; ?>>
+
+                        <?php echo htmlspecialchars($cat['category_name']); ?>
+
+                    </option>
+
+                    <?php endwhile; ?>
+
+                </select>
+            </div>
+
 
               <div class="mb-3">
                 <label class="form-label">Question Text</label>
@@ -107,7 +234,7 @@ $questions = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE qu
 $(document).ready(function() {
   let questionCount = <?php echo $count; ?>;
 
-  // ➕ Add new question block
+  // Add new question block
   $('#addQuestionBtn').click(function() {
     questionCount++;
     const html = `
@@ -115,6 +242,18 @@ $(document).ready(function() {
         <div class="d-flex justify-content-between align-items-center">
           <h6>Question ${questionCount}</h6>
           <button type="button" class="btn btn-danger btn-sm removeQuestion"><i class="fas fa-trash"></i></button>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Category</label>
+
+            <select
+                name="questions[${questionCount}][category]"
+                class="form-select category-select">
+
+                <option value="">General</option>
+
+            </select>
         </div>
 
         <div class="mb-3">
@@ -138,14 +277,16 @@ $(document).ready(function() {
       </div>
     `;
     $('#questionContainer').append(html);
+
+    refreshCategoryDropdowns();
   });
 
-  // 🗑 Remove question
+  // Remove question
   $(document).on('click', '.removeQuestion', function() {
     $(this).closest('.question-block').remove();
   });
 
-  // 🧩 Toggle option input visibility
+  // Toggle option input visibility
   $(document).on('change', '.question-type', function() {
     const selectedType = $(this).val();
     const optionSection = $(this).closest('.question-block').find('.option-section');
@@ -153,7 +294,7 @@ $(document).ready(function() {
     else optionSection.hide();
   });
 
-  // 💾 Submit form via AJAX
+  // Submit form via AJAX
   $('#editQuestionnaireForm').on('submit', function(e) {
     e.preventDefault();
     $.ajax({
@@ -177,5 +318,80 @@ $(document).ready(function() {
       }
     });
   });
+
+
+  $('#addCategoryBtn').click(function(){
+
+    $('#categoryContainer').append(`
+        <div class="input-group mb-2 category-row">
+
+            <input
+                type="text"
+                name="categories[]"
+                class="form-control"
+                placeholder="Category Name">
+
+            <button
+                type="button"
+                class="btn btn-danger removeCategory">
+
+                <i class="fas fa-trash"></i>
+
+            </button>
+
+        </div>
+    `);
+
+    refreshCategoryDropdowns();
+});
+
+
+$(document).on('click','.removeCategory',function(){
+
+    $(this).closest('.category-row').remove();
+
+    refreshCategoryDropdowns();
+
+});
+
+
+  function refreshCategoryDropdowns() {
+
+    let options = '<option value="">General</option>';
+
+    $('input[name="categories[]"]').each(function(){
+
+        let value = $(this).val().trim();
+
+        if(value !== ''){
+            options += `
+                <option value="${value}">
+                    ${value}
+                </option>
+            `;
+        }
+
+    });
+
+    $('.category-select').each(function(){
+
+        let current = $(this).val();
+
+        $(this).html(options);
+
+        if(current){
+            $(this).val(current);
+        }
+
+    });
+}
+
+$(document).on(
+    'input',
+    'input[name="categories[]"]',
+    refreshCategoryDropdowns
+);
+
+
 });
 </script>

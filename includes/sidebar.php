@@ -1,22 +1,3 @@
-
-<!-- // Determine the correct dashboard link based on user role
-$dashboardLink = "#"; // default
-
-switch ($_SESSION['role_id']) {
-  case 1:
-    $dashboardLink = "../admin/dashboard.php";
-    break;
-  case 2:
-    $dashboardLink = "../organizer/dashboard.php";
-    break;
-  case 3:
-    $dashboardLink = "../evaluator/dashboard.php";
-    break;
-  default:
-    $dashboardLink = "../dashboard/dashboard.php"; // fallback if needed
-} -->
-
-
 <?php
 // -------------------- Role-based Sidebar --------------------
 
@@ -91,16 +72,25 @@ $dashboardLink = match($role) {
     <li class="nav-item">
       <a class="nav-link" href="../admin/events.php">
         <i class="fas fa-calendar-alt"></i>
-        <span>Manage Events</span>
+        <span>Events</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="../admin/manage_scales.php">
+        <i class="fas fa-balance-scale"></i>
+        <span>Scale</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link" href="../admin/manage_users.php">
         <i class="fas fa-users"></i>
-        <span>Manage Users</span>
+        <span>Users</span>
       </a>
     </li>
+
+    
 
     <li class="nav-item">
       <a class="nav-link" href="../admin/reports.php">

@@ -10,42 +10,6 @@ include '../includes/db_connect.php';
 
 $organizer_id = $_SESSION['user_id'];
 
-// Fetch all questionnaires created by this organizer
-// $query = "
-//   SELECT q.*, COUNT(qq.question_id) AS total_questions
-//   FROM questionnaire q
-//   LEFT JOIN questionnaire_questions qq ON q.questionnaire_id = qq.questionnaire_id
-//   WHERE q.created_by = '$organizer_id'
-//   GROUP BY q.questionnaire_id
-//   ORDER BY q.created_at DESC;
-// ";
-
-// first version
-// $query = "
-// SELECT 
-//     q.questionnaire_id,
-//     q.title,
-//     q.description,
-//     q.created_by,
-//     q.created_at,
-//     q.status,
-//     q.admin_comment,
-//     (
-//         SELECT COUNT(*) 
-//         FROM questionnaire_questions qq 
-//         WHERE qq.questionnaire_id = q.questionnaire_id
-//     ) AS total_questions,
-//     (
-//         SELECT GROUP_CONCAT(DISTINCT e.event_title SEPARATOR ', ')
-//         FROM event_questionnaire eq
-//         JOIN events e ON eq.event_id = e.event_id
-//         WHERE eq.questionnaire_id = q.questionnaire_id
-//     ) AS assigned_events
-// FROM questionnaire q
-// WHERE q.created_by = '$organizer_id'
-// ORDER BY q.created_at DESC;
-// ";
-
 
 $query = "
 SELECT 
@@ -72,7 +36,14 @@ SELECT
         WHERE eq.questionnaire_id = q.questionnaire_id
     ) AS assigned_events,
 
-    -- ⭐ Pull eq.id for edit-targets modal
+    -- Count linked events (for questionnaire locking)
+    (
+        SELECT COUNT(*)
+        FROM event_questionnaire eq
+        WHERE eq.questionnaire_id = q.questionnaire_id
+    ) AS linked_events,
+
+    -- Pull eq.id for edit-targets modal
     (
         SELECT eq.id
         FROM event_questionnaire eq
@@ -80,7 +51,7 @@ SELECT
         LIMIT 1
     ) AS eq_id,
 
-    -- ⭐ Pull event_id for unlink buttons / display
+    -- Pull event_id for unlink buttons / display
     (
         SELECT eq.event_id
         FROM event_questionnaire eq
@@ -219,10 +190,25 @@ $result = mysqli_query($conn, $query);
                 </button>
 
                 <!-- Edit -->
-                <a href="edit_questionnaire.php?id=<?php echo $row['questionnaire_id']; ?>" 
-                   class="btn btn-sm btn-warning" title="Edit Questionnaire">
-                  <i class="fas fa-edit"></i>
+                <?php if ($row['linked_events'] > 0): ?>
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-secondary lockedQuestionnaire"
+                    data-title="<?php echo htmlspecialchars($row['title']); ?>"
+                    title="Questionnaire Locked">
+                    <i class="fas fa-lock"></i>
+                </button>
+
+                <?php else: ?>
+
+                <a href="edit_questionnaire.php?id=<?php echo $row['questionnaire_id']; ?>"
+                  class="btn btn-sm btn-warning"
+                  title="Edit Questionnaire">
+                    <i class="fas fa-edit"></i>
                 </a>
+
+                <?php endif; ?>
 
                 <!-- Assign -->
                 <a href="#" 
@@ -340,8 +326,8 @@ $(document).ready(function() {
   });
 
 
-  // 🗑 Delete Questionnaire
-$(document).on('click', '.deleteBtn', function() {
+  //  Delete Questionnaire
+$(document).on('click', '.deleteBtn', function(e) {
   e.preventDefault(); // Prevent <a> from navigating
   const id = $(this).data('id');
   
@@ -393,20 +379,66 @@ $(document).on('click', '.viewBtn', function() {
         $('#view_title').text(data.title);
         $('#view_description').text(data.description);
 
+        // let questionsHtml = '';
+        // if (data.questions.length > 0) {
+        //   data.questions.forEach((q, index) => {
+        //     questionsHtml += `
+        //       <div class="border rounded p-3 mb-2">
+        //         <strong>Q${index + 1}:</strong> ${q.text}<br>
+        //         <small class="text-muted">Type: ${q.type}</small>
+        //         ${q.options ? `<br><small>Options: ${q.options.join(', ')}</small>` : ''}
+        //       </div>
+        //     `;
+        //   });
+        // } else {
+        //   questionsHtml = `<p class="text-muted">No questions available.</p>`;
+        // }
+
         let questionsHtml = '';
-        if (data.questions.length > 0) {
-          data.questions.forEach((q, index) => {
+
+        Object.keys(data.questions).forEach(category => {
+
             questionsHtml += `
-              <div class="border rounded p-3 mb-2">
-                <strong>Q${index + 1}:</strong> ${q.text}<br>
-                <small class="text-muted">Type: ${q.type}</small>
-                ${q.options ? `<br><small>Options: ${q.options.join(', ')}</small>` : ''}
-              </div>
+                <div class="mb-3">
+                    <h6 class="fw-bold text-primary">
+                        <i class="fas fa-folder-open"></i>
+                        ${category}
+                    </h6>
+                    <ul class="list-group">
             `;
-          });
-        } else {
-          questionsHtml = `<p class="text-muted">No questions available.</p>`;
-        }
+
+            data.questions[category].forEach(q => {
+
+                questionsHtml += `
+                    <li class="list-group-item">
+                        <strong>${q.text}</strong><br>
+
+                        <small class="text-muted">
+                            Type: ${q.type}
+                        </small>
+                `;
+
+                if (q.options) {
+
+                    questionsHtml += `
+                        <br>
+                        <small>
+                            Options:
+                            ${q.options.join(', ')}
+                        </small>
+                    `;
+                }
+
+                questionsHtml += `</li>`;
+            });
+
+            questionsHtml += `
+                    </ul>
+                </div>
+            `;
+        });
+
+
 
         $('#question_list').html(questionsHtml);
         $('#viewModal').modal('show');
@@ -432,7 +464,7 @@ $(document).on('click', '.viewBtn', function() {
 
 
 
-  // 🔗 Open Assign Modal
+  //  Open Assign Modal
 $('.assignBtn').on('click', function() {
   const questionnaireId = $(this).data('id');
   const questionnaireTitle = $(this).data('title');
@@ -457,7 +489,7 @@ $('.assignBtn').on('click', function() {
 
 
 
-  // 💾 Handle Assign Form Submission
+  //  Handle Assign Form Submission
   $('#assignForm').on('submit', function(e) {
     e.preventDefault();
     $.ajax({
@@ -486,7 +518,7 @@ $('.assignBtn').on('click', function() {
 });
 
 
-// 🗑️ Unlink Questionnaire from Event
+//  Unlink Questionnaire from Event
 $(document).on('click', '.btn-unlink', function() {
   const eventId = $(this).data('event');
   const questionnaireId = $(this).data('questionnaire');
@@ -531,6 +563,25 @@ document.addEventListener('click', function(e) {
     document.getElementById('commentText').innerText = comment;
     new bootstrap.Modal(document.getElementById('commentModal')).show();
   }
+});
+
+//notify when questionnaire's already linked to event or has responses
+$(document).on('click', '.lockedQuestionnaire', function(){
+
+    let title = $(this).data('title');
+
+    Swal.fire({
+        icon: 'info',
+        title: 'Questionnaire Locked',
+        html: `
+            <strong>${title}</strong>
+            <br><br>
+            This questionnaire is already assigned to one or more events.
+            <br><br>
+            Editing is disabled to preserve historical evaluation data.
+        `
+    });
+
 });
 
 </script>
