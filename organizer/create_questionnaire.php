@@ -7,6 +7,15 @@ include '../includes/header.php';
 include '../includes/sidebar.php';
 include '../includes/topbar.php';
 include '../includes/db_connect.php';
+
+
+$scales = mysqli_query($conn, "
+    SELECT *
+    FROM evaluation_scales
+    WHERE status = 'Active'
+    ORDER BY scale_name ASC
+");
+
 ?>
 
 <div class="container-fluid">
@@ -25,6 +34,36 @@ include '../includes/db_connect.php';
           <label class="form-label fw-bold">Description:</label>
           <textarea name="description" class="form-control" rows="3" placeholder="Short description or purpose" required></textarea>
         </div>
+
+        <!-- Scale Options -->
+         <div class="mb-3">
+            <label class="form-label fw-bold">
+              Evaluation Likert Scale:
+            </label>
+
+            <select
+              name="scale_id"
+              class="form-select"
+              required>
+
+              <option value="">
+                Select Scale
+              </option>
+
+              <?php while($scale = mysqli_fetch_assoc($scales)): ?>
+
+                <option value="<?php echo $scale['scale_id']; ?>">
+                  <?php echo htmlspecialchars($scale['scale_name']); ?>
+                </option>
+
+              <?php endwhile; ?>
+
+            </select>
+
+            <small class="text-muted">
+              This scale will be used for all Rating questions in this questionnaire.
+            </small>
+          </div>
 
 
         <div class="card mb-3">
@@ -107,7 +146,7 @@ $(document).ready(function() {
         <div class="mb-3">
           <label class="form-label">Question Type</label>
           <select name="questions[${questionCount}][type]" class="form-select question-type" required>
-            <option value="rating">Rating (1–5)</option>
+            <option value="rating">Likert Scale (Rating)</option>
             <option value="text">Text Response</option>
             <option value="multiple">Multiple Choice</option>
           </select>

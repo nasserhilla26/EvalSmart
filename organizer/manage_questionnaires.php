@@ -21,6 +21,8 @@ SELECT
     q.status,
     q.admin_comment,
 
+    s.scale_name,
+
     -- Count questions
     (
         SELECT COUNT(*) 
@@ -60,33 +62,38 @@ SELECT
     ) AS event_id
 
 FROM questionnaire q
+
+LEFT JOIN evaluation_scales s
+    ON q.scale_id = s.scale_id
+
 WHERE q.created_by = '$organizer_id'
 ORDER BY q.created_at DESC;
 ";
 
-
-
 $result = mysqli_query($conn, $query);
+
 ?>
 
 <div class="container-fluid">
 
   <div class="row">
-    <div class="col"><h1 class="h3 mb-4 text-gray-800">Manage Questionnaires</h1></div>
+    <div class="col">
+      <h1 class="h3 mb-4 text-gray-800">Manage Questionnaires</h1>
+    </div>
     <div class="col text-end">
 
-    <a href="create_questionnaire.php" class="btn btn-outline-primary mx-3">
-      <i class="fas fa-plus"></i> Create New Questionnaire
-    </a>
+      <a href="create_questionnaire.php" class="btn btn-outline-primary mx-3">
+        <i class="fas fa-plus"></i> Create New Questionnaire
+      </a>
 
-    <a href="manage_targets.php" class="btn btn-secondary">
-      <i class="fas fa-eye"></i> Assign Evaluators
-    </a>
+      <a href="manage_targets.php" class="btn btn-secondary">
+        <i class="fas fa-eye"></i> Assign Evaluators
+      </a>
 
 
     </div>
 
-    
+
   </div>
 
   <div class="card shadow mb-4">
@@ -96,7 +103,7 @@ $result = mysqli_query($conn, $query);
           <tr>
             <th>#</th>
             <th>Title</th>
-            <!-- <th>Description</th> -->
+            <th>Scale</th>
             <th>Questions</th>
             <th>Assigned To</th>
             <th>Status</th>
@@ -106,21 +113,38 @@ $result = mysqli_query($conn, $query);
           </tr>
         </thead>
         <tbody>
-          <?php 
+          <?php
           $i = 1;
           while ($row = mysqli_fetch_assoc($result)): ?>
             <tr>
               <td><?php echo $i++; ?></td>
               <td><?php echo htmlspecialchars($row['title']); ?></td>
-              <!-- <td><?php echo htmlspecialchars($row['description']); ?></td> -->
+
+              <!-- Scale  -->
+              <td>
+                <?php if (!empty($row['scale_name'])): ?>
+
+                  <span class="badge bg-dark">
+                    <?php echo htmlspecialchars($row['scale_name']); ?>
+                  </span>
+
+                <?php else: ?>
+
+                  <span class="badge bg-danger">
+                    No Scale
+                  </span>
+
+                <?php endif; ?>
+              </td>
+
               <td><span class="badge bg-info"><?php echo $row['total_questions']; ?></span></td>
 
               <!-- <td>
                 <?php if (!empty($row['assigned_events'])): ?>
-                    <?php 
+                    <?php
                     $events = explode(',', $row['assigned_events']);
                     foreach ($events as $event):
-                    ?>
+                      ?>
                     <span class="badge bg-success"><?php echo htmlspecialchars(trim($event)); ?></span>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -128,103 +152,87 @@ $result = mysqli_query($conn, $query);
                 <?php endif; ?>
                 </td> -->
 
-                <td>
+              <td>
                 <?php if (!empty($row['assigned_events'])): ?>
-                    <?php 
-                    // get events for unlink buttons
-                    $events = mysqli_query($conn, "
+                  <?php
+                  // get events for unlink buttons
+                  $events = mysqli_query($conn, "
                         SELECT e.event_id, e.event_title 
                         FROM event_questionnaire eq
                         JOIN events e ON eq.event_id = e.event_id
                         WHERE eq.questionnaire_id = '{$row['questionnaire_id']}'
                     ");
 
-                    while ($ev = mysqli_fetch_assoc($events)): ?>
-                        <span class="badge bg-success m-1">
-                        <?php echo htmlspecialchars($ev['event_title']); ?>
-                        <button 
-                            type="button" 
-                            class="btn btn-sm text-light btn-unlink" 
-                            data-event="<?php echo $ev['event_id']; ?>" 
-                            data-questionnaire="<?php echo $row['questionnaire_id']; ?>"
-                            title="Unlink from this event">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        </span>
-                    <?php endwhile; ?>
+                  while ($ev = mysqli_fetch_assoc($events)): ?>
+                    <span class="badge bg-success m-1">
+                      <?php echo htmlspecialchars($ev['event_title']); ?>
+                      <button type="button" class="btn btn-sm text-light btn-unlink"
+                        data-event="<?php echo $ev['event_id']; ?>"
+                        data-questionnaire="<?php echo $row['questionnaire_id']; ?>" title="Unlink from this event">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </span>
+                  <?php endwhile; ?>
                 <?php else: ?>
-                    <span class="badge bg-secondary">Unassigned</span>
+                  <span class="badge bg-secondary">Unassigned</span>
                 <?php endif; ?>
-                </td>
+              </td>
 
-                <!-- Evaluation Status -->
-                <td>
-                  <?php if ($row['status'] == 'Approved'): ?>
-                    <span class="badge bg-success">Approved</span>
-                  <?php elseif ($row['status'] == 'Pending'): ?>
-                    <span class="badge bg-warning text-dark">Pending</span>
-                  <?php else: ?>
-                    <span class="badge bg-danger">Modify</span>
-                  <?php endif; ?>
-                </td>
+              <!-- Evaluation Status -->
+              <td>
+                <?php if ($row['status'] == 'Approved'): ?>
+                  <span class="badge bg-success">Approved</span>
+                <?php elseif ($row['status'] == 'Pending'): ?>
+                  <span class="badge bg-warning text-dark">Pending</span>
+                <?php else: ?>
+                  <span class="badge bg-danger">Modify</span>
+                <?php endif; ?>
+              </td>
 
-                <td>
-                  <?php if (!empty($row['admin_comment'])): ?>
-                    <button class="btn btn-sm btn-info viewCommentBtn" 
-                            data-comment="<?php echo htmlspecialchars($row['admin_comment']); ?>">
-                      <i class="fas fa-comment-dots"></i>
-                    </button>
-                  <?php endif; ?>
-                </td>
+              <td>
+                <?php if (!empty($row['admin_comment'])): ?>
+                  <button class="btn btn-sm btn-info viewCommentBtn"
+                    data-comment="<?php echo htmlspecialchars($row['admin_comment']); ?>">
+                    <i class="fas fa-comment-dots"></i>
+                  </button>
+                <?php endif; ?>
+              </td>
 
 
               <td><?php echo date("F j, Y", strtotime($row['created_at'])); ?></td>
               <td class="text-center">
                 <!-- View -->
-                <button 
-                type="button" 
-                class="btn btn-sm btn-info viewBtn"
-                data-id="<?php echo $row['questionnaire_id']; ?>"
-                title="View Questionnaire">
-                <i class="fas fa-eye"></i>
+                <button type="button" class="btn btn-sm btn-info viewBtn"
+                  data-id="<?php echo $row['questionnaire_id']; ?>" title="View Questionnaire">
+                  <i class="fas fa-eye"></i>
                 </button>
 
                 <!-- Edit -->
                 <?php if ($row['linked_events'] > 0): ?>
 
-                <button
-                    type="button"
-                    class="btn btn-sm btn-secondary lockedQuestionnaire"
-                    data-title="<?php echo htmlspecialchars($row['title']); ?>"
-                    title="Questionnaire Locked">
+                  <button type="button" class="btn btn-sm btn-secondary lockedQuestionnaire"
+                    data-title="<?php echo htmlspecialchars($row['title']); ?>" title="Questionnaire Locked">
                     <i class="fas fa-lock"></i>
-                </button>
+                  </button>
 
                 <?php else: ?>
 
-                <a href="edit_questionnaire.php?id=<?php echo $row['questionnaire_id']; ?>"
-                  class="btn btn-sm btn-warning"
-                  title="Edit Questionnaire">
+                  <a href="edit_questionnaire.php?id=<?php echo $row['questionnaire_id']; ?>" class="btn btn-sm btn-warning"
+                    title="Edit Questionnaire">
                     <i class="fas fa-edit"></i>
-                </a>
+                  </a>
 
                 <?php endif; ?>
 
                 <!-- Assign -->
-                <a href="#" 
-                class="btn btn-sm btn-secondary assignBtn" 
-                data-id="<?php echo $row['questionnaire_id']; ?>" 
-                data-title="<?php echo htmlspecialchars($row['title']); ?>"
-                title="Assign to Event">
-                <i class="fas fa-link"></i>
+                <a href="#" class="btn btn-sm btn-secondary assignBtn" data-id="<?php echo $row['questionnaire_id']; ?>"
+                  data-title="<?php echo htmlspecialchars($row['title']); ?>" title="Assign to Event">
+                  <i class="fas fa-link"></i>
                 </a>
 
-                <!-- Delete --> 
-                <button 
-                  type="button"
-                  class="btn btn-sm btn-danger deleteBtn"
-                  data-id="<?php echo $row['questionnaire_id']; ?>"
-                  title="Delete Questionnaire">
+                <!-- Delete -->
+                <button type="button" class="btn btn-sm btn-danger deleteBtn"
+                  data-id="<?php echo $row['questionnaire_id']; ?>" title="Delete Questionnaire">
                   <i class="fas fa-trash"></i>
                 </button>
 
@@ -287,6 +295,14 @@ $result = mysqli_query($conn, $query);
         <h5 id="view_title" class="fw-bold mb-2"></h5>
         <p id="view_description" class="text-muted"></p>
 
+        <div class="mb-3">
+          <label class="fw-bold">
+            Evaluation Scale:
+          </label>
+
+          <div id="view_scale"></div>
+        </div>
+
         <hr>
         <h6 class="fw-bold">Questions:</h6>
         <div id="question_list"></div>
@@ -317,88 +333,79 @@ $result = mysqli_query($conn, $query);
 
 
 <script>
-$(document).ready(function() {
-  // Initialize DataTable
-  $('#questionnaireTable').DataTable({
-    pageLength: 10,
-    lengthMenu: [5, 10, 25, 50],
-    order: [[4, 'desc']]
-  });
+  $(document).ready(function () {
+    // Initialize DataTable
+    $('#questionnaireTable').DataTable({
+      pageLength: 10,
+      lengthMenu: [5, 10, 25, 50],
+      order: [[4, 'desc']]
+    });
 
 
-  //  Delete Questionnaire
-$(document).on('click', '.deleteBtn', function(e) {
-  e.preventDefault(); // Prevent <a> from navigating
-  const id = $(this).data('id');
-  
-  Swal.fire({
-    title: 'Delete Questionnaire?',
-    text: 'This action cannot be undone!',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: 'delete_questionnaire.php',
-        type: 'POST',
-        data: { id: id },
-        success: function(response) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: response
-          }).then(() => location.reload());
-        },
-        error: function() {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to delete questionnaire.'
+    //  Delete Questionnaire
+    $(document).on('click', '.deleteBtn', function (e) {
+      e.preventDefault(); // Prevent <a> from navigating
+      const id = $(this).data('id');
+
+      Swal.fire({
+        title: 'Delete Questionnaire?',
+        text: 'This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: 'delete_questionnaire.php',
+            type: 'POST',
+            data: { id: id },
+            success: function (response) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: response
+              }).then(() => location.reload());
+            },
+            error: function () {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to delete questionnaire.'
+              });
+            }
           });
         }
       });
-    }
-  });
-});
+    });
 
 
 
-// View Questionnaire (Modal)
-$(document).on('click', '.viewBtn', function() {
-  const id = $(this).data('id');
+    // View Questionnaire (Modal)
+    $(document).on('click', '.viewBtn', function () {
+      const id = $(this).data('id');
 
-  $.ajax({
-    url: 'fetch_questionnaire_details.php',
-    type: 'GET',
-    data: { id: id },
-    dataType: 'json',
-    success: function(data) {
-      if (data.success) {
-        $('#view_title').text(data.title);
-        $('#view_description').text(data.description);
+      $.ajax({
+        url: 'fetch_questionnaire_details.php',
+        type: 'GET',
+        data: { id: id },
+        dataType: 'json',
+        success: function (data) {
+          if (data.success) {
+            $('#view_title').text(data.title);
+            $('#view_description').text(data.description);
 
-        // let questionsHtml = '';
-        // if (data.questions.length > 0) {
-        //   data.questions.forEach((q, index) => {
-        //     questionsHtml += `
-        //       <div class="border rounded p-3 mb-2">
-        //         <strong>Q${index + 1}:</strong> ${q.text}<br>
-        //         <small class="text-muted">Type: ${q.type}</small>
-        //         ${q.options ? `<br><small>Options: ${q.options.join(', ')}</small>` : ''}
-        //       </div>
-        //     `;
-        //   });
-        // } else {
-        //   questionsHtml = `<p class="text-muted">No questions available.</p>`;
-        // }
+            $('#view_scale').html(`
+              <span class="badge bg-dark">
+                  ${data.scale_name ?? 'No Scale'}
+              </span>
+          `);
 
-        let questionsHtml = '';
+            let questionsHtml = '';
 
-        Object.keys(data.questions).forEach(category => {
+            Object.keys(data.questions).forEach(category => {
 
-            questionsHtml += `
+              questionsHtml += `
                 <div class="mb-3">
                     <h6 class="fw-bold text-primary">
                         <i class="fas fa-folder-open"></i>
@@ -407,7 +414,7 @@ $(document).on('click', '.viewBtn', function() {
                     <ul class="list-group">
             `;
 
-            data.questions[category].forEach(q => {
+              data.questions[category].forEach(q => {
 
                 questionsHtml += `
                     <li class="list-group-item">
@@ -420,7 +427,7 @@ $(document).on('click', '.viewBtn', function() {
 
                 if (q.options) {
 
-                    questionsHtml += `
+                  questionsHtml += `
                         <br>
                         <small>
                             Options:
@@ -430,150 +437,150 @@ $(document).on('click', '.viewBtn', function() {
                 }
 
                 questionsHtml += `</li>`;
-            });
+              });
 
-            questionsHtml += `
+              questionsHtml += `
                     </ul>
                 </div>
             `;
-        });
+            });
 
 
 
-        $('#question_list').html(questionsHtml);
-        $('#viewModal').modal('show');
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: data.message
-        });
-      }
-    },
-    error: function() {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to fetch questionnaire details.'
+            $('#question_list').html(questionsHtml);
+            $('#viewModal').modal('show');
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: data.message
+            });
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to fetch questionnaire details.'
+          });
+        }
       });
-    }
+    });
+
+
+
+
+
+    //  Open Assign Modal
+    $('.assignBtn').on('click', function () {
+      const questionnaireId = $(this).data('id');
+      const questionnaireTitle = $(this).data('title');
+
+      $('#assign_questionnaire_id').val(questionnaireId);
+      $('#assign_questionnaire_title').val(questionnaireTitle);
+
+      // Load organizer's events dynamically via AJAX
+      $.ajax({
+        url: 'fetch_organizer_events.php',
+        type: 'GET',
+        success: function (data) {
+          $('#event_id').html(data); // populate dropdown with <option> list
+          $('#assignModal').modal('show'); // show modal after successful load
+        },
+        error: function () {
+          $('#event_id').html('<option value="">Error loading events</option>');
+          $('#assignModal').modal('show'); // still show modal so user sees error
+        }
+      });
+    });
+
+
+
+    //  Handle Assign Form Submission
+    $('#assignForm').on('submit', function (e) {
+      e.preventDefault();
+      $.ajax({
+        url: 'save_assigned_questionnaire.php',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function (response) {
+          $('#assignModal').modal('hide');
+          Swal.fire({
+            icon: 'success',
+            title: 'Assigned Successfully!',
+            text: response,
+            confirmButtonColor: '#3085d6'
+          }).then(() => location.reload());
+        },
+        error: function () {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to assign questionnaire.',
+            confirmButtonColor: '#d33'
+          });
+        }
+      });
+    });
   });
-});
 
 
+  //  Unlink Questionnaire from Event
+  $(document).on('click', '.btn-unlink', function () {
+    const eventId = $(this).data('event');
+    const questionnaireId = $(this).data('questionnaire');
 
-
-
-  //  Open Assign Modal
-$('.assignBtn').on('click', function() {
-  const questionnaireId = $(this).data('id');
-  const questionnaireTitle = $(this).data('title');
-
-  $('#assign_questionnaire_id').val(questionnaireId);
-  $('#assign_questionnaire_title').val(questionnaireTitle);
-
-  // Load organizer's events dynamically via AJAX
-  $.ajax({
-    url: 'fetch_organizer_events.php',
-    type: 'GET',
-    success: function(data) {
-      $('#event_id').html(data); // populate dropdown with <option> list
-      $('#assignModal').modal('show'); // show modal after successful load
-    },
-    error: function() {
-      $('#event_id').html('<option value="">Error loading events</option>');
-      $('#assignModal').modal('show'); // still show modal so user sees error
-    }
-  });
-});
-
-
-
-  //  Handle Assign Form Submission
-  $('#assignForm').on('submit', function(e) {
-    e.preventDefault();
-    $.ajax({
-      url: 'save_assigned_questionnaire.php',
-      type: 'POST',
-      data: $(this).serialize(),
-      success: function(response) {
-        $('#assignModal').modal('hide');
-        Swal.fire({
-          icon: 'success',
-          title: 'Assigned Successfully!',
-          text: response,
-          confirmButtonColor: '#3085d6'
-        }).then(() => location.reload());
-      },
-      error: function() {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to assign questionnaire.',
-          confirmButtonColor: '#d33'
+    Swal.fire({
+      title: 'Unlink Questionnaire?',
+      text: 'This will remove the questionnaire from the event.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, unlink it',
+      confirmButtonColor: '#d33'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: 'unlink_questionnaire.php',
+          type: 'POST',
+          data: { event_id: eventId, questionnaire_id: questionnaireId },
+          success: function (response) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Updated',
+              text: response
+            }).then(() => location.reload());
+          },
+          error: function () {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Unable to unlink questionnaire.'
+            });
+          }
         });
       }
     });
   });
-});
 
 
-//  Unlink Questionnaire from Event
-$(document).on('click', '.btn-unlink', function() {
-  const eventId = $(this).data('event');
-  const questionnaireId = $(this).data('questionnaire');
-
-  Swal.fire({
-    title: 'Unlink Questionnaire?',
-    text: 'This will remove the questionnaire from the event.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Yes, unlink it',
-    confirmButtonColor: '#d33'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: 'unlink_questionnaire.php',
-        type: 'POST',
-        data: { event_id: eventId, questionnaire_id: questionnaireId },
-        success: function(response) {
-          Swal.fire({
-            icon: 'info',
-            title: 'Updated',
-            text: response
-          }).then(() => location.reload());
-        },
-        error: function() {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Unable to unlink questionnaire.'
-          });
-        }
-      });
+  // Admin comment trigger
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.viewCommentBtn')) {
+      const comment = e.target.closest('.viewCommentBtn').dataset.comment;
+      document.getElementById('commentText').innerText = comment;
+      new bootstrap.Modal(document.getElementById('commentModal')).show();
     }
   });
-});
 
-
-// Admin comment trigger
-document.addEventListener('click', function(e) {
-  if (e.target.closest('.viewCommentBtn')) {
-    const comment = e.target.closest('.viewCommentBtn').dataset.comment;
-    document.getElementById('commentText').innerText = comment;
-    new bootstrap.Modal(document.getElementById('commentModal')).show();
-  }
-});
-
-//notify when questionnaire's already linked to event or has responses
-$(document).on('click', '.lockedQuestionnaire', function(){
+  //notify when questionnaire's already linked to event or has responses
+  $(document).on('click', '.lockedQuestionnaire', function () {
 
     let title = $(this).data('title');
 
     Swal.fire({
-        icon: 'info',
-        title: 'Questionnaire Locked',
-        html: `
+      icon: 'info',
+      title: 'Questionnaire Locked',
+      html: `
             <strong>${title}</strong>
             <br><br>
             This questionnaire is already assigned to one or more events.
@@ -582,7 +589,6 @@ $(document).on('click', '.lockedQuestionnaire', function(){
         `
     });
 
-});
+  });
 
 </script>
-

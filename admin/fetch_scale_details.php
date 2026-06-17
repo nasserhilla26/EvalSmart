@@ -8,7 +8,7 @@ include '../includes/db_connect.php';
 
 $id = intval($_GET['id']);
 
-$scaleQuery = mysqli_query($conn,"
+$scaleQuery = mysqli_query($conn, "
     SELECT *
     FROM evaluation_scales
     WHERE scale_id='$id'
@@ -16,7 +16,7 @@ $scaleQuery = mysqli_query($conn,"
 
 $scale = mysqli_fetch_assoc($scaleQuery);
 
-if(!$scale){
+if (!$scale) {
 
     echo json_encode([
         'success' => false
@@ -27,27 +27,27 @@ if(!$scale){
 
 $options = [];
 
-$optionQuery = mysqli_query($conn,"
+$optionQuery = mysqli_query($conn, "
     SELECT *
     FROM evaluation_scale_options
     WHERE scale_id='$id'
     ORDER BY score DESC
 ");
 
-while($row = mysqli_fetch_assoc($optionQuery)){
+while ($row = mysqli_fetch_assoc($optionQuery)) {
     $options[] = $row;
 }
 
 $ranges = [];
 
-$rangeQuery = mysqli_query($conn,"
+$rangeQuery = mysqli_query($conn, "
     SELECT *
     FROM interpretation_ranges
     WHERE scale_id='$id'
     ORDER BY max_value DESC
 ");
 
-while($row = mysqli_fetch_assoc($rangeQuery)){
+while ($row = mysqli_fetch_assoc($rangeQuery)) {
     $ranges[] = $row;
 }
 

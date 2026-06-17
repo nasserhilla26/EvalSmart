@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
     $created_by = $_SESSION['user_id'];
+    $scale_id = intval($_POST['scale_id']);
 
     mysqli_begin_transaction($conn);
 
@@ -20,17 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         | SAVE QUESTIONNAIRE
         |--------------------------------------------------------------------------
         */
+
+        if ($scale_id <= 0) {
+            throw new Exception("Please select an evaluation scale.");
+        } else {
+
+
         $stmt = mysqli_prepare(
             $conn,
-            "INSERT INTO questionnaire (title, description, created_by)
-             VALUES (?, ?, ?)"
+            "INSERT INTO questionnaire
+            (
+                title,
+                description,
+                scale_id,
+                created_by
+            )
+            VALUES (?, ?, ?, ? )"
         );
 
         mysqli_stmt_bind_param(
             $stmt,
-            "ssi",
+            "ssii",
             $title,
             $description,
+            $scale_id,
             $created_by
         );
 
@@ -39,6 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $questionnaire_id = mysqli_insert_id($conn);
 
         mysqli_stmt_close($stmt);
+
+        }
 
         /*
         |--------------------------------------------------------------------------

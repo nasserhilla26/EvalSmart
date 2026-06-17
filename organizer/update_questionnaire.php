@@ -9,6 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $organizer_id = $_SESSION['user_id'];
+    $scale_id = intval($_POST['scale_id']);
 
     // Verify ownership
     $check = mysqli_query($conn, "SELECT * FROM questionnaire WHERE questionnaire_id='$id' AND created_by='$organizer_id'");
@@ -16,33 +17,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit("Unauthorized or invalid questionnaire.");
     }
 
-    // Update questionnaire info
+    // scale validation check, this section when you choose the default option this will alert, 
+    // but the scale still override the old selected scale unless you choose new scale.
+    if ($scale_id <= 0) {
+        exit("Please select an evaluation scale.");
+    }
+
+    //lock the scale to prevents someone from bypassing the disabled dropdown using browser dev tools.
+    $lockCheck = mysqli_query($conn, "
+        SELECT COUNT(*) AS total
+        FROM event_questionnaire
+        WHERE questionnaire_id='$id'
+    ");
+
+    $lockData = mysqli_fetch_assoc($lockCheck);
+
+    $isScaleLocked = ($lockData['total'] > 0);
+
+    if ($isScaleLocked) {
+
+        $currentScale = mysqli_query($conn, "
+            SELECT scale_id
+            FROM questionnaire
+            WHERE questionnaire_id='$id'
+        ");
+
+        $currentScaleData = mysqli_fetch_assoc($currentScale);
+
+        // Force original scale
+        $scale_id = $currentScaleData['scale_id'];
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE QUESTIONNAIRE
+    |--------------------------------------------------------------------------
+    */
+
     $update = mysqli_query($conn, "
         UPDATE questionnaire 
-        SET title='$title', description='$description'
+        SET
+            title='$title',
+            description='$description',
+            scale_id='$scale_id'
         WHERE questionnaire_id='$id'
     ");
 
     if (!$update) {
         exit("Failed to update questionnaire info: " . mysqli_error($conn));
     }
-
-    // // Delete old questions first
-    // mysqli_query($conn, "DELETE FROM questionnaire_questions WHERE questionnaire_id='$id'");
-
-    // // Insert updated question set
-    // $questions = $_POST['questions'] ?? [];
-    // $saved = 0;
-
-    // foreach ($questions as $q) {
-    //     $text = mysqli_real_escape_string($conn, $q['text']);
-    //     $type = mysqli_real_escape_string($conn, $q['type']);
-    //     $options = !empty($q['options']) ? json_encode(array_map('trim', explode(',', $q['options']))) : null;
-
-    //     $sql = "INSERT INTO questionnaire_questions (questionnaire_id, question_text, question_type, options)
-    //             VALUES ('$id', '$text', '$type', " . ($options ? "'$options'" : "NULL") . ")";
-    //     if (mysqli_query($conn, $sql)) $saved++;
-    // }
 
     /*
     |--------------------------------------------------------------------------
@@ -58,6 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         "DELETE FROM questionnaire_categories
         WHERE questionnaire_id='$id'"
     );
+
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -191,5 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     echo "Questionnaire updated successfully with $saved question(s).";
+
+    
 }
 ?>

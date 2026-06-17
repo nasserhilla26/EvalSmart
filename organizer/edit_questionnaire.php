@@ -47,10 +47,27 @@ if (mysqli_num_rows($query) == 0) {
 
 $questionnaire = mysqli_fetch_assoc($query);
 
+
+//fetch scale
+$scales = mysqli_query($conn, "
+    SELECT *
+    FROM evaluation_scales
+    WHERE status='Active'
+    ORDER BY scale_name ASC
+");
+
+$lockCheck = mysqli_query($conn, "
+    SELECT COUNT(*) AS total
+    FROM event_questionnaire
+    WHERE questionnaire_id='$id'
+");
+
+$lockData = mysqli_fetch_assoc($lockCheck);
+
+$isScaleLocked = ($lockData['total'] > 0);
+
+
 // Fetch questions
-// $questions = mysqli_query($conn, "SELECT * FROM questionnaire_questions WHERE questionnaire_id='$id'");
-
-
 $questions = mysqli_query($conn, "
     SELECT
         qq.*,
@@ -88,6 +105,82 @@ $categories = mysqli_query($conn, "
           <label class="form-label fw-bold">Description:</label>
           <textarea name="description" class="form-control" rows="3" required><?php echo htmlspecialchars($questionnaire['description']); ?></textarea>
         </div>
+
+        <!-- Scale Options -->
+
+        <?php
+          $selectedScaleExists = false;
+          ?>
+
+          <div class="mb-3">
+
+              <label class="form-label fw-bold">
+                  Evaluation Scale:
+              </label>
+
+              <select
+                  name="scale_id"
+                  class="form-select"
+                  <?php echo $isScaleLocked ? 'disabled' : ''; ?>>
+
+                  <option value="">
+                      Select Scale
+                  </option>
+
+                  <?php while($scale = mysqli_fetch_assoc($scales)): ?>
+
+                      <?php
+                      $isSelected =
+                          !empty($questionnaire['scale_id']) &&
+                          ((int)$questionnaire['scale_id'] === (int)$scale['scale_id']);
+
+                      if($isSelected){
+                          $selectedScaleExists = true;
+                      }
+                      ?>
+
+                      <option
+                          value="<?php echo $scale['scale_id']; ?>"
+                          <?php echo $isSelected ? 'selected' : ''; ?>>
+
+                          <?php echo htmlspecialchars($scale['scale_name']); ?>
+
+                      </option>
+
+                  <?php endwhile; ?>
+
+                  <?php if(
+                      !empty($questionnaire['scale_id']) &&
+                      !$selectedScaleExists
+                  ): ?>
+
+                      <option selected disabled>
+                          Selected scale no longer exists
+                      </option>
+
+                  <?php endif; ?>
+
+              </select>
+
+              <?php if($isScaleLocked): ?>
+
+                  <small class="text-danger">
+                      This questionnaire is already assigned to an event.
+                      Evaluation scale can no longer be changed.
+                  </small>
+
+                  <!-- Hidden field so current scale_id is still submitted -->
+                  <input
+                      type="hidden"
+                      name="scale_id"
+                      value="<?php echo $questionnaire['scale_id']; ?>">
+
+              <?php endif; ?>
+
+           </div>
+
+        <!-- Scale Options  -->
+
 
 <!-- Category section -->
         <hr>
