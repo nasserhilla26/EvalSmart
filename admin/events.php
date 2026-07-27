@@ -95,6 +95,12 @@ $result = mysqli_query($conn, "
                     <i class="fas fa-eye"></i>
                   </button>
                   <?php endif; ?>
+
+                  <a href="../shared/event_result.php?id=<?php echo $row['event_id']; ?>" 
+                    class="btn btn-sm btn-success"
+                    title="View Evaluation Results">
+                      <i class="fas fa-chart-bar"></i>
+                  </a>
             </tr>
           <?php endwhile; ?>
         </tbody>

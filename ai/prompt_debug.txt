@@ -1,0 +1,503 @@
+
+
+Analyze the following event evaluation data and generate a professional event evaluation report.
+
+You are evaluating an academic, institutional, training, seminar, workshop, outreach, extension, or school-related event.
+
+==================================================
+EVENT INFORMATION
+==================================================
+
+Event Title:
+InnovateZambo: Digital Transformation Summit 2026
+
+Event Description:
+A professional gathering focused on the latest trends in artificial intelligence, cybersecurity, and digital infrastructure, aimed at fostering technological growth within the Zamboanga business and education sectors.
+
+Event Date:
+2026-06-18
+
+Event Venue:
+Mother Ignacia Gymnasium
+
+==================================================
+EVALUATION RESULTS
+==================================================
+
+Total Responses:
+1
+
+Overall Mean:
+3.7
+
+Overall Interpretation:
+Satisfied (Very Good)
+
+==================================================
+CATEGORY RESULTS
+==================================================
+
+Category: Resource Speaker
+Mean: 4.00
+Interpretation: Satisfied (Very Good)
+
+Category: Venue
+Mean: 4.00
+Interpretation: Satisfied (Very Good)
+
+Category: Food
+Mean: 3.00
+Interpretation: Moderately Satisfied (Average)
+
+
+
+==================================================
+QUESTION RESULTS
+==================================================
+
+Question: The speaker demonstrated deep expertise in the topic.
+Mean: 5.00
+Interpretation: Highly Satisfied (Excellent)
+
+Question: The presentation materials were clear and organized.
+Mean: 4.00
+Interpretation: Satisfied (Very Good)
+
+Question: The speaker effectively answered audience questions.
+Mean: 3.00
+Interpretation: Moderately Satisfied (Average)
+
+Question: The content was relevant and applicable to the field.
+Mean: 4.00
+Interpretation: Satisfied (Very Good)
+
+Question: The venue was comfortable and conducive to learning.
+Mean: 3.00
+Interpretation: Moderately Satisfied (Average)
+
+Question: Technical equipment (AV, internet, sound) worked perfectly.
+Mean: 4.00
+Interpretation: Satisfied (Very Good)
+
+Question: The location was accessible and easy to find.
+Mean: 5.00
+Interpretation: Highly Satisfied (Excellent)
+
+Question: The food was of high quality and fresh.
+Mean: 4.00
+Interpretation: Satisfied (Very Good)
+
+Question: The food selection met diverse dietary needs.
+Mean: 3.00
+Interpretation: Moderately Satisfied (Average)
+
+Question: The catering service was efficient and timely.
+Mean: 2.00
+Interpretation: Dissatisfied (Below Average)
+
+
+
+==================================================
+TOP RATED QUESTIONS
+==================================================
+
+- The speaker demonstrated deep expertise in the topic. (5.00)
+- The location was accessible and easy to find. (5.00)
+- The presentation materials were clear and organized. (4.00)
+
+
+==================================================
+LOWEST RATED QUESTIONS
+==================================================
+
+- The catering service was efficient and timely. (2.00)
+- The food selection met diverse dietary needs. (3.00)
+- The venue was comfortable and conducive to learning. (3.00)
+
+
+==================================================
+PARTICIPANT COMMENTS AND SUGGESTIONS
+==================================================
+
+Comment: Overall, a very well-organized event! I truly appreciate the effort put into the program and the relevance of the topics chosen.
+Suggestion: While the content was great, the Wi-Fi connection in the back of the lab was a bit unstable. Having a more reliable network access would make it easier to follow along during live demonstrations.
+
+
+==================================================
+TASKS
+==================================================
+
+1. Analyze the quantitative results including:
+   - Overall Mean
+   - Overall Interpretation
+   - Category Means
+   - Category Interpretations
+   - Question Means
+   - Question Interpretations
+
+2. Perform thematic analysis on all participant comments and suggestions.
+
+3. Identify recurring positive themes.
+
+4. Identify recurring improvement themes.
+
+5. Determine strengths based on quantitative and qualitative evidence.
+
+6. Determine areas needing improvement based on quantitative and qualitative evidence.
+
+7. Generate actionable recommendations.
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+1. Base all findings strictly on the provided evaluation data.
+
+2. Do not invent facts, facilities, services, activities, achievements, equipment, or event details that are not explicitly mentioned.
+
+3. Do not assume reasons for ratings unless supported by participant comments or suggestions.
+
+4. Use the provided interpretations exactly as given.
+
+5. If evidence is insufficient, use neutral language such as:
+   'Participants generally rated this area positively.'
+
+6. Avoid exaggerated praise.
+
+7. Maintain an objective and professional tone.
+
+8. Write in a style appropriate for:
+   - Accreditation Reports
+   - Quality Assurance Reports
+   - Institutional Assessment Reports
+   - Administrative Reports
+
+9. Do not use markdown.
+
+10. Do not use:
+    *
+    **
+    #
+    ###
+    -
+    _
+    Bullet points
+
+11. Use numbered lists only.
+
+12. Return only the report.
+
+==================================================
+REPORT FORMAT
+==================================================
+
+Event Evaluation Report
+
+Executive Summary
+
+Write one to two concise paragraphs summarizing the overall evaluation results, major strengths, and areas needing improvement.
+
+Quantitative Findings
+
+Overall Mean:
+[Mean]
+
+Overall Interpretation:
+[Interpretation]
+
+Total Responses:
+[Number]
+
+Category Performance
+
+1. [Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+2. [Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Highest Rated Category
+
+[Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Lowest Rated Category
+
+[Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Question-Level Insights
+
+Discuss the strongest and weakest evaluation criteria based on the provided question results.
+
+Positive Themes
+
+Identify and explain recurring positive themes from comments and suggestions.
+
+Example:
+
+1. Speaker Expertise
+Participants consistently appreciated the expertise, preparedness, and clarity of the speakers.
+
+2. Event Organization
+Participants highlighted the smooth flow of activities and effective event management.
+
+Improvement Themes
+
+Identify and explain recurring concerns or suggestions.
+
+Example:
+
+1. Internet Connectivity
+Several participants reported connectivity issues during activities requiring internet access.
+
+2. Time Management
+Participants suggested allocating more time for discussions and interactive activities.
+
+Recommendations
+
+Provide 3 to 5 actionable recommendations directly linked to the quantitative findings and thematic analysis.
+
+Overall Assessment
+
+Provide a concluding paragraph summarizing the effectiveness of the event and opportunities for future improvement.
+
+
+
+
+
+------------------------------- old Prompt--------------------------------------------
+
+$prompt = "
+
+Analyze the following event evaluation data and generate a professional event evaluation report.
+
+You are evaluating an academic, institutional, training, seminar, workshop, outreach, extension, or school-related event.
+
+==================================================
+EVENT INFORMATION
+==================================================
+
+Event Title:
+{$event['event_title']}
+
+Event Description:
+{$event['event_description']}
+
+Event Date:
+{$event['event_date']}
+
+Event Venue:
+{$event['event_venue']}
+
+==================================================
+EVALUATION RESULTS
+==================================================
+
+Total Responses:
+{$totalResponses}
+
+Overall Mean:
+{$overallAverage}
+
+Overall Interpretation:
+{$overallInterpretation}
+
+==================================================
+CATEGORY RESULTS
+==================================================
+
+{$categoryText}
+
+==================================================
+QUESTION RESULTS
+==================================================
+
+{$questionText}
+
+==================================================
+TOP RATED QUESTIONS
+==================================================
+
+{$topQuestionsText}
+
+==================================================
+LOWEST RATED QUESTIONS
+==================================================
+
+{$lowestQuestionsText}
+
+==================================================
+PARTICIPANT COMMENTS AND SUGGESTIONS
+==================================================
+
+{$qualitativeText}
+
+==================================================
+TASKS
+==================================================
+
+1. Analyze the quantitative results including:
+   - Overall Mean
+   - Overall Interpretation
+   - Category Means
+   - Category Interpretations
+   - Question Means
+   - Question Interpretations
+
+2. Perform thematic analysis on all participant comments and suggestions.
+
+3. Identify recurring positive themes.
+
+4. Identify recurring improvement themes.
+
+5. Determine strengths based on quantitative and qualitative evidence.
+
+6. Determine areas needing improvement based on quantitative and qualitative evidence.
+
+7. Generate actionable recommendations.
+
+==================================================
+REPORT FORMAT
+==================================================
+
+Event Evaluation Report
+
+Executive Summary
+
+Write one to two concise paragraphs summarizing the overall evaluation results, major strengths, and areas needing improvement.
+
+Quantitative Findings
+
+Overall Mean:
+[Mean]
+
+Overall Interpretation:
+[Interpretation]
+
+Total Responses:
+[Number]
+
+Category Performance
+
+1. [Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+2. [Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Highest Rated Category
+
+[Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Lowest Rated Category
+
+[Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Question-Level Insights
+
+Discuss the strongest and weakest evaluation criteria based on the provided question results.
+
+Positive Themes
+
+Identify and explain recurring positive themes from comments and suggestions.
+
+Only generate this section if open-ended answer, comments or suggestions exist.
+
+Otherwise write:
+
+'Insufficient qualitative data was available for thematic analysis.'
+
+Improvement Themes
+
+Identify and explain recurring concerns or suggestions.
+
+Only generate this section if comments or suggestions exist.
+
+Otherwise write:
+
+'Insufficient qualitative data was available for thematic analysis.'
+
+
+Recommendations
+
+Provide 3 to 5 actionable recommendations directly linked to the quantitative findings and thematic analysis.
+Each recommendation must be directly supported by evaluation findings.
+
+Do not create recommendations that are not supported by the data.
+
+Overall Assessment
+
+Provide a concluding paragraph summarizing the effectiveness of the event and opportunities for future improvement.
+
+If comments or suggestions are not available, do not create:
+
+Positive Themes
+Improvement Themes
+Participant opinions
+Participant concerns
+Participant experiences
+
+Instead write:
+
+Insufficient qualitative data was available for thematic analysis.
+
+Do not infer, assume, or invent participant feedback.
+==================================================
+IMPORTANT RULES
+==================================================
+
+1. Base all findings strictly on the provided evaluation data.
+
+2. Do not invent facts, facilities, services, activities, achievements, equipment, or event details that are not explicitly mentioned.
+
+3. Do not assume reasons for ratings unless supported by participant comments or suggestions.
+
+4. Use the provided interpretations exactly as given.
+
+5. If evidence is insufficient, use neutral language such as:
+   'The current event has insufficient data for analysis.'
+
+6. Avoid exaggerated praise.
+
+7. Maintain an objective and professional tone.
+
+8. Write in a style appropriate for:
+   - Accreditation Reports
+   - Quality Assurance Reports
+   - Institutional Assessment Reports
+   - Administrative Reports
+
+9. Do not use markdown.
+
+10. DO NOT use:
+    *
+    **
+    #
+    ###
+    -
+    _
+    Bullet points
+
+11. Use numbered lists only.
+
+12. Return only the report.
+
+13. If no comments or suggestions are provided, write:
+
+Insufficient qualitative data was available for thematic analysis.
+
+Do not generate positive themes or improvement themes when no qualitative responses exist.
+
+";
+

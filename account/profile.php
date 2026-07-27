@@ -38,7 +38,7 @@ if (!$userData) {
 
 
 
-<div class="container-fluid">
+<div class="container">
 
   <h1 class="h3 mb-4 text-gray-800">Account Settings</h1>
 

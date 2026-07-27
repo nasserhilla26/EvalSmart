@@ -51,12 +51,12 @@ $q_link = mysqli_query($conn, "
 
 ?>
 
-<div class="container-fluid">
+<div class="container">
   <h1 class="h3 mb-4 text-gray-800">Event Evaluation</h1>
 
   <div class="card shadow mb-4">
     <div class="card-body">
-      <h4 class="fw-bold mb-2"><?php echo htmlspecialchars($event['event_title']); ?></h4>
+      <h4 class="fw-bold mb-2 text-primary"><?php echo htmlspecialchars($event['event_title']); ?></h4>
       <p class="text-muted mb-4"><?php echo htmlspecialchars($event['event_description']); ?></p>
 
       <?php if (mysqli_num_rows($q_link) == 0): ?>
@@ -137,10 +137,10 @@ $q_link = mysqli_query($conn, "
 
             <div class="card mb-4">
 
-              <div class="card-header bg-primary text-white">
+              <div class="card-header bg-light text-dark">
 
                 <strong>
-                  <?php echo htmlspecialchars($category); ?>
+                 Category:  <?php echo htmlspecialchars($category); ?>
                 </strong>
 
               </div>

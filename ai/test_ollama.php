@@ -1,22 +1,13 @@
 <?php
-include '../includes/auth.php';
-include '../includes/role_check.php';
-
-if (!in_array($_SESSION['active_role'], [1,2])) {
-    die("Unauthorized access");
-}
 
 include '../includes/db_connect.php';
-
-set_time_limit(180); // for generating AI output
-
 include '../includes/openai_config.php'; // Ollama connection
 include '../includes/analytics_helper.php';
 
 
 header('Content-Type: text/plain; charset=UTF-8');
 
-$event_id = intval($_POST['event_id']);
+$event_id = 13;
 if (!$event_id) {
     echo "Error: Missing event ID.";
     exit;
@@ -267,34 +258,37 @@ foreach ($suggestions as $suggestion)
         $suggestion . "\n";
 }
 
-// set status = none if no available comments and suggestions
-$qualitativeStatus = 'NONE';
 
-if (
-    !empty(trim($qualitativeText))
-    && trim($qualitativeText) !== 'NOT AVAILABLE'
-) {
-    $qualitativeStatus = 'AVAILABLE';
-}
-
-// Prepare AI prompt
+$url = "http://localhost:11434/v1/chat/completions";
 
 $prompt = "
 
-You are an Educational Quality Assurance Analyst.
+Analyze the following event evaluation data and generate a professional event evaluation report.
 
-Analyze the evaluation results and generate a concise professional assessment report.
+You are evaluating an academic, institutional, training, seminar, workshop, outreach, extension, or school-related event.
 
 ==================================================
 EVENT INFORMATION
-=================
+==================================================
 
 Event Title:
 {$event['event_title']}
 
+Event Description:
+{$event['event_description']}
+
+Event Date:
+{$event['event_date']}
+
+Event Venue:
+{$event['event_venue']}
+
 ==================================================
-OVERALL RESULTS
-===============
+EVALUATION RESULTS
+==================================================
+
+Total Responses:
+{$totalResponses}
 
 Overall Mean:
 {$overallAverage}
@@ -303,261 +297,211 @@ Overall Interpretation:
 {$overallInterpretation}
 
 ==================================================
+CATEGORY RESULTS
+==================================================
+
+{$categoryText}
+
+==================================================
+QUESTION RESULTS
+==================================================
+
+{$questionText}
+
+==================================================
 TOP RATED QUESTIONS
-===================
+==================================================
 
 {$topQuestionsText}
 
 ==================================================
 LOWEST RATED QUESTIONS
-======================
+==================================================
 
 {$lowestQuestionsText}
 
 ==================================================
-QUALITATIVE STATUS
-=====================
+PARTICIPANT COMMENTS AND SUGGESTIONS
+==================================================
 
-
-
-If {$qualitativeStatus} is AVAILABLE:
-
-Generate Positive Themes and Improvement Themes.
-
-If {$qualitativeStatus} is NOT AVAILABLE:
-
-Write:
-
-Insufficient qualitative data was available for thematic analysis.
+NO COMMENTS AVAILABLE
 
 ==================================================
-QUALITATIVE RESPONSES
-=====================
+TASKS
+==================================================
 
-{$qualitativeText}
+1. Analyze the quantitative results including:
+   - Overall Mean
+   - Overall Interpretation
+   - Category Means
+   - Category Interpretations
+   - Question Means
+   - Question Interpretations
+
+2. Perform thematic analysis on all participant comments and suggestions.
+
+3. Identify recurring positive themes.
+
+4. Identify recurring improvement themes.
+
+5. Determine strengths based on quantitative and qualitative evidence.
+
+6. Determine areas needing improvement based on quantitative and qualitative evidence.
+
+7. Generate actionable recommendations.
 
 ==================================================
-REPORT REQUIREMENTS
-===================
+REPORT FORMAT
+==================================================
 
-Generate ONLY the following sections:
+Event Evaluation Report
 
 Executive Summary
+
+Write one to two concise paragraphs summarizing the overall evaluation results, major strengths, and areas needing improvement.
+
+Quantitative Findings
+
+Overall Mean:
+[Mean]
+
+Overall Interpretation:
+[Interpretation]
+
+Total Responses:
+[Number]
+
+Category Performance
+
+1. [Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+2. [Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Highest Rated Category
+
+[Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
+
+Lowest Rated Category
+
+[Category Name]
+Mean: [Mean]
+Interpretation: [Interpretation]
 
 Question-Level Insights
 
+Discuss the strongest and weakest evaluation criteria based on the provided question results.
+
 Positive Themes
 
+Identify and explain recurring positive themes from comments and suggestions.
+
+Example:
+
+1. Speaker Expertise
+Participants consistently appreciated the expertise, preparedness, and clarity of the speakers.
+
+2. Event Organization
+Participants highlighted the smooth flow of activities and effective event management.
+
 Improvement Themes
+
+Identify and explain recurring concerns or suggestions.
+
+Example:
+
+1. Internet Connectivity
+Several participants reported connectivity issues during activities requiring internet access.
+
+2. Time Management
+Participants suggested allocating more time for discussions and interactive activities.
 
 Recommendations
 
-Overall Assessment
-
-==================================================
-ANALYSIS RULES
-==============
-
-1. Use only the supplied evaluation data.
-
-2. Use TOP RATED QUESTIONS when discussing strengths.
-
-3. Use LOWEST RATED QUESTIONS when discussing weaknesses and improvement opportunities.
-
-4. Use QUALITATIVE RESPONSES when identifying themes and recommendations.
-
-5. Recommendations must be supported by:
-
-   1. Lowest Rated Questions
-   2. Open-Ended Responses
-   3. Comments
-   4. Suggestions
-
-6. Do not generate recommendations unrelated to the supplied data.
-
-7. Do not invent participant opinions, concerns, experiences, or suggestions.
-
-8. Do not infer specific activities, demonstrations, technologies, topics, workshops, software, equipment, or learning activities unless explicitly stated in participant responses.
-
-9. If no qualitative responses are available, write:
-
-Insufficient qualitative data was available for thematic analysis.
-
-for both:
-
-Positive Themes
-
-Improvement Themes
-
-==================================================
-OUTPUT FORMAT
-=============
-
-Executive Summary
-
-Write one concise paragraph summarizing the overall evaluation.
-
-Question-Level Insights
-
-Discuss the strongest and weakest evaluation criteria based on the supplied question results.
-
-Positive Themes
-
-Identify recurring positive themes from participant responses.
-
-Improvement Themes
-
-Identify recurring concerns or suggestions from participant responses.
-
-Recommendations
-
-Provide 3 or more actionable recommendations directly supported by:
-
-1. Lowest Rated Questions
-2. Participant Feedback
+Provide 3 to 5 actionable recommendations directly linked to the quantitative findings and thematic analysis.
 
 Overall Assessment
 
-Provide one concluding paragraph summarizing the event's effectiveness and opportunities for improvement.
+Provide a concluding paragraph summarizing the effectiveness of the event and opportunities for future improvement.
 
 ==================================================
-STRICT OUTPUT RULES
-===================
+IMPORTANT RULES
+==================================================
 
-1. Return plain text only.
+1. Base all findings strictly on the provided evaluation data.
 
-2. Do not use markdown.
+2. Do not invent facts, facilities, services, activities, achievements, equipment, or event details that are not explicitly mentioned.
 
-3. Do not use:
+3. Do not assume reasons for ratings unless supported by participant comments or suggestions.
 
-*
+4. Use the provided interpretations exactly as given.
 
-**
+5. If evidence is insufficient, use neutral language such as:
+   'Participants generally rated this area positively.'
 
-#
+6. Avoid exaggerated praise.
 
-###
+7. Maintain an objective and professional tone.
 
-*
+8. Write in a style appropriate for:
+   - Accreditation Reports
+   - Quality Assurance Reports
+   - Institutional Assessment Reports
+   - Administrative Reports
 
-_
-bullet points
+9. Do not use markdown.
 
-4. Use numbered lists only in the Recommendations section.
+10. DO NOT use:
+    *
+    **
+    #
+    ###
+    -
+    _
+    Bullet points
 
-5. The first line of the response must be:
+11. Use numbered lists only.
 
-Executive Summary
-
-6. Do not include:
-   Overall Mean
-   Overall Interpretation
-   Category Results
-   Question Results
-   Top Rated Questions
-   Lowest Rated Questions
-
-These are already displayed elsewhere in the system.
-
-7. Return only the requested sections.
+12. Return only the report.
 
 ";
 
+$data = [
+    "model" => "llama3:latest",
+    "messages" => [
+        [
+            "role" => "user",
+            "content" => $prompt
+        ]
+    ]
+];
 
+$ch = curl_init($url);
 
-// echo "<pre>";
-// print_r($prompt);
-// echo "</pre>";
-// exit;
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Content-Type: application/json",
+    "Authorization: Bearer ollama"
+]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-// var_dump(mb_check_encoding($prompt, 'UTF-8'));
-// exit;
-// echo "<pre>";
-// echo "PROMPT LENGTH: " . strlen($prompt);
-// echo "\n\n";
-// echo $prompt;
-// echo "</pre>";
-// exit;
+$response = curl_exec($ch);
 
-// var_dump($qualitativeStatus);
+echo "<pre>";
 
-// echo "<pre>";
-// echo $qualitativeText;
-// echo "</pre>";
-// exit;
-
-
-try {
-
-
-    //  Generate AI Summary via Ollama Llama3
-
-    $ai_output = generateAISummary($prompt);
-
-    $ai_output = str_replace('**', '', $ai_output);
-    $ai_output = preg_replace('/^\-\s+/m', '', $ai_output);
-
-    //  Optional: split recommendations section (if structured output is returned)
-    $summary_text = $ai_output;
-   
-
-    //  Store summary into ai_summary table
-    $summary_text = mysqli_real_escape_string($conn, $summary_text);
-    // $recommendations = $recommendations ? mysqli_real_escape_string($conn, $recommendations) : 'NULL';
-
-    $query = "
-        INSERT INTO ai_summary (event_id, summary_text)
-        VALUES ('$event_id', '$summary_text')
-        ON DUPLICATE KEY UPDATE
-          summary_text = VALUES(summary_text),
-          generated_on = NOW()
-    ";
-
-    if (mysqli_query($conn, $query)) {
-        echo $ai_output; // matches your existing frontend output (plain text)
-        exit;
-    } else {
-        echo "Error saving AI summary: " . mysqli_error($conn);
-        exit;
-    }
-
-} catch (\Throwable $e) {
-
-      echo "<pre>";
-
-    echo "CLASS:\n";
-    echo get_class($e);
-
-    echo "\n\nMESSAGE:\n";
-    echo $e->getMessage();
-
-    echo "\n\nFILE:\n";
-    echo $e->getFile();
-
-    echo "\n\nLINE:\n";
-    echo $e->getLine();
-
-    echo "\n\nTRACE:\n";
-    echo $e->getTraceAsString();
-
-    file_put_contents(
-        __DIR__ . '/ollama_error.log',
-        date('Y-m-d H:i:s') .
-        ' - ' .
-        $e->getMessage() .
-        PHP_EOL,
-        FILE_APPEND
-    );
-
-    echo "</pre>";
-
+if (curl_errno($ch)) {
+    echo "CURL ERROR:\n";
+    echo curl_error($ch);
+} else {
+    echo $response;
     exit;
 }
 
-
-
-
-// catch (Exception $e) {
-//     echo "AI Generation failed: " . $e->getMessage();
-// }
-
+curl_close($ch);
+exit;

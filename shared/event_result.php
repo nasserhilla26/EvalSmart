@@ -8,42 +8,75 @@ include '../includes/topbar.php';
 
 include '../includes/analytics_helper.php';
 
-// $event_id = intval($_GET['id'] ?? 0);
-$event_id = 13;
+$user_id = $_SESSION['user_id'];
+$roles = $_SESSION['roles'] ?? [];
 
-if(!$event_id){
-    die("Invalid Event ID");
+//block evaluators
+if (
+    !in_array(1, $roles) &&
+    !in_array(2, $roles)
+) {
+
+    echo "<script>
+            alert('Unauthorized Access');
+            window.location='../index.php';
+          </script>";
+    exit;
 }
 
+$event_id = intval($_GET['id'] ?? 0);
 
-//Load Event
-$eventQuery = mysqli_query($conn, "
-    SELECT
-        e.*,
-        q.questionnaire_id,
-        q.scale_id,
-        q.title AS questionnaire_title
-    FROM events e
 
-    LEFT JOIN event_questionnaire eq
-        ON e.event_id = eq.event_id
+if (in_array(1, $roles)) {
 
-    LEFT JOIN questionnaire q
-        ON eq.questionnaire_id = q.questionnaire_id
+    // ADMIN
+    $eventQuery = mysqli_query($conn, "
+        SELECT
+            e.*,
+            q.questionnaire_id,
+            q.scale_id,
+            q.title AS questionnaire_title
+        FROM events e
+        LEFT JOIN event_questionnaire eq
+            ON e.event_id = eq.event_id
+        LEFT JOIN questionnaire q
+            ON eq.questionnaire_id = q.questionnaire_id
+        WHERE e.event_id = '$event_id'
+        LIMIT 1
+    ");
 
-    WHERE e.event_id = '$event_id'
-    LIMIT 1
-");
+} else {
 
-if(mysqli_num_rows($eventQuery) == 0){
-    die("Event not found.");
+    // ORGANIZER
+    $eventQuery = mysqli_query($conn, "
+        SELECT
+            e.*,
+            q.questionnaire_id,
+            q.scale_id,
+            q.title AS questionnaire_title
+        FROM events e
+        LEFT JOIN event_questionnaire eq
+            ON e.event_id = eq.event_id
+        LEFT JOIN questionnaire q
+            ON eq.questionnaire_id = q.questionnaire_id
+        WHERE e.event_id = '$event_id'
+        AND e.organizer_id = '$user_id'
+        LIMIT 1
+    ");
+
+}
+
+if (mysqli_num_rows($eventQuery) == 0) {
+
+    echo "<script>
+            alert('You are not authorized to view this event.');
+            history.back();
+          </script>";
+
+    exit;
 }
 
 $event = mysqli_fetch_assoc($eventQuery);
-
-
-
-
 
 
 //Load Analytics
@@ -78,6 +111,13 @@ $categoryResults = getCategoryAverage(
     $event_id
 );
 
+// ranking categories
+$rankedCategories = $categoryResults;
+
+usort($rankedCategories, function($a, $b) {
+    return $b['average'] <=> $a['average'];
+});
+
 
 // Top Performer result
 $bestCategory = null;
@@ -107,6 +147,42 @@ $questionResults = getQuestionAverage(
 );
 
 
+// questions ranking
+$highestQuestion = null;
+$lowestQuestion = null;
+
+if (!empty($questionResults)) {
+
+    $highestQuestion = $questionResults[0];
+    $lowestQuestion = $questionResults[0];
+
+    foreach ($questionResults as $question) {
+
+        if ($question['average'] > $highestQuestion['average']) {
+            $highestQuestion = $question;
+        }
+
+        if ($question['average'] < $lowestQuestion['average']) {
+            $lowestQuestion = $question;
+        }
+    }
+}
+
+$rankedQuestions = $questionResults;
+
+usort($rankedQuestions, function ($a, $b) {
+    return $b['average'] <=> $a['average'];
+});
+
+$topQuestions = array_slice($rankedQuestions, 0, 3);
+
+$bottomQuestions = array_slice(
+    array_reverse($rankedQuestions),
+    0,
+    3
+);
+
+
 // Total Responses
 
 $responseQuery = mysqli_query($conn, "
@@ -122,11 +198,90 @@ $responseData = mysqli_fetch_assoc(
 $totalResponses = $responseData['total'];
 
 
-?>
+// Category chart
+$categoryLabels = [];
+$categoryScores = [];
+
+foreach($categoryResults as $cat){
+
+    $categoryLabels[] = $cat['category_name'];
+
+    $categoryScores[] = $cat['average'];
+}
 
 
+//Frequency Distribution
 
-<div class="container-fluid">
+$frequencyResults =
+    getFrequencyDistribution(
+        $conn,
+        $event_id
+    );
+
+// Percentage Distribution
+$percentageResults =
+    getPercentageDistribution(
+        $frequencyResults
+    );
+
+$scale_id = getEventScaleId(
+    $conn,
+    $event_id
+);
+
+// scale label for frequency and percentage
+$scaleLabels =
+    getScaleLabels(
+        $conn,
+        $scale_id
+    );
+
+// Calculate SD
+$questionSD =
+    getQuestionStandardDeviation(
+        $conn,
+        $event_id
+    );
+
+$categorySD = getCategoryStandardDeviation(
+    $conn,
+    $event_id
+);
+
+// php end tag
+?> 
+
+<!-- style for bar chart too large -->
+<style>
+
+.chart-container {
+
+    position: relative;
+
+    width: 100%;
+    height: 400px;
+}
+
+@media (max-width: 992px) {
+
+    .chart-container {
+
+        height: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+
+    .chart-container {
+
+        height: 250px;
+    }
+}
+
+</style>
+
+
+<div class="container">
 
     <?php if(empty($event['questionnaire_id'])): ?>
 
@@ -142,10 +297,25 @@ $totalResponses = $responseData['total'];
     </div>
 
     <?php endif; ?>
+    
+    <div class="row">
+        <div class="col">
+            <h1 class="h3 mb-4 text-gray-800">
+            Event Evaluation Dashboard
+        </h1>
+        </div>
+        
+        <div class="col text-end">
+            <a href="../reports/generate_pdf.php?event_id=<?php echo $event_id; ?>"
+                    target="_blank"
+                    class="btn btn-danger btn-md">
 
-    <h1 class="h3 mb-4 text-gray-800">
-        Event Evaluation Dashboard
-    </h1>
+                        <i class="fas fa-file-pdf"></i>
+                        Export PDF Report
+
+                    </a>
+        </div>
+    </div>
 
     <div class="card shadow mb-4">
 
@@ -169,7 +339,7 @@ $totalResponses = $responseData['total'];
 
     <div class="row">
 
-    <div class="col-md-4">
+    <div class="col-md-4 mb-2 ">
 
         <div class="card border-left-primary shadow h-100">
 
@@ -194,7 +364,7 @@ $totalResponses = $responseData['total'];
 
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-4 mb-2">
 
         <div class="card border-left-success shadow h-100">
 
@@ -218,7 +388,7 @@ $totalResponses = $responseData['total'];
 
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-4 mb-2">
 
         <div class="card border-left-info shadow h-100">
 
@@ -333,6 +503,10 @@ $totalResponses = $responseData['total'];
                             Average
                         </th>
 
+                        <th>
+                            Std. Dev.
+                        </th>
+
                         <th width="250">
                             Interpretation
                         </th>
@@ -363,6 +537,15 @@ $totalResponses = $responseData['total'];
                             ); ?>
 
                         </td>
+                        
+                        <td>
+                            <?php
+                                echo number_format(
+                                    $categorySD[$cat['category_name']] ?? 0,
+                                    2
+                                );
+                            ?>
+                        </td>
 
                         <td>
 
@@ -390,11 +573,246 @@ $totalResponses = $responseData['total'];
 
 </div>
 
+<!-- Category Performance Table -->
 
+
+<!-- Category Ranking -->
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            Category Ranking
+        </h6>
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-light table-striped">
+
+                <thead>
+                    <tr>
+                        <th width="10%">Rank</th>
+                        <th>Category</th>
+                        <th width="20%">Mean</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                <?php
+                $rank = 1;
+
+                foreach($rankedCategories as $cat):
+                ?>
+
+                    <tr>
+
+                        <td>
+                            <span class="badge bg-primary">
+                                #<?php echo $rank; ?>
+                            </span>
+                        </td>
+
+                        <td>
+                            <?php echo htmlspecialchars($cat['category_name']); ?>
+                        </td>
+
+                        <td>
+                            <?php echo number_format($cat['average'], 2); ?>
+                        </td>
+
+                    </tr>
+
+                <?php
+                    $rank++;
+                endforeach;
+                ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Category Ranking -->
+
+<!-- Category Performance Chart -->
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3">
+
+        <h6 class="m-0 font-weight-bold text-primary">
+            Category Performance Chart
+        </h6>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="chart-container">
+
+            <canvas id="categoryChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Category Performance Chart -->
+
+<!-- Question Ranking -->
+
+<div class="row">
+
+    <!-- Highest Rate -->
+     <div class="col-md-6 mb-4">
+
+        <div class="card border-left-success shadow h-100">
+
+            <div class="card-body">
+
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-2">
+                    Highest Rated Question
+                </div>
+
+                <div class="h6 mb-2 font-weight-bold">
+                    <?php echo htmlspecialchars($highestQuestion['question_text']) ?? "No Data Available"; ?>
+                </div>
+
+                <div class="h5 mb-0 text-gray-800">
+                    <?php echo number_format($highestQuestion['average'], 2) ?? "No Data Available"; ?>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Lowest Rate -->
+
+    <div class="col-md-6 mb-4">
+
+        <div class="card border-left-danger shadow h-100">
+
+            <div class="card-body">
+
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-2">
+                    Lowest Rated Question
+                </div>
+
+                <div class="h6 mb-2 font-weight-bold">
+                    <?php echo htmlspecialchars($lowestQuestion['question_text']); ?>
+                </div>
+
+                <div class="h5 mb-0 text-gray-800">
+                    <?php echo number_format($lowestQuestion['average'], 2); ?>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+<!-- End Div row -->
+</div>
+
+<div class="row">
+
+<!-- Top 3 Performing -->
+    <div class="col-lg-6 mb-4">
+
+        <div class="card shadow">
+
+            <div class="card-header bg-success text-white">
+                Top Performing Questions
+            </div>
+
+            <div class="card-body">
+
+                <ol class="mb-0">
+
+                    <?php foreach ($topQuestions as $question): ?>
+
+                        <li class="mb-2">
+
+                            <?php echo htmlspecialchars($question['question_text']); ?>
+
+                            <br>
+
+                            <small class="text-dark">
+                                Mean:
+                                <?php echo number_format($question['average'], 2); ?>
+                            </small>
+
+                        </li>
+
+                    <?php endforeach; ?>
+
+                </ol>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Lowest 3 Performing -->
+     <div class="col-lg-6">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-danger text-white">
+            Lowest Performing Questions
+        </div>
+
+        <div class="card-body">
+
+            <ol class="mb-0">
+
+                <?php foreach ($bottomQuestions as $question): ?>
+
+                    <li class="mb-2">
+
+                        <?php echo htmlspecialchars($question['question_text']); ?>
+
+                        <br>
+
+                        <small class="text-dark">
+                            Mean:
+                            <?php echo number_format($question['average'], 2); ?>
+                        </small>
+
+                    </li>
+
+                <?php endforeach; ?>
+
+            </ol>
+
+        </div>
+
+    </div>
+
+</div>
+
+    
+<!-- End Div -->
+</div>
+
+<!-- Question Ranking -->
 
 <!-- Question Performance Table -->
 
-<div class="card shadow my-4">
+<div class="card shadow my-2">
 
     <div class="card-header py-3">
 
@@ -416,11 +834,15 @@ $totalResponses = $responseData['total'];
 
                         <th>Question</th>
 
-                        <th width="150">
+                        <th width="100" class="text-center">
                             Average
                         </th>
 
-                        <th width="250">
+                        <th width="100" class="text-center">
+                            Std. Dev.
+                        </th>
+
+                        <th width="250" class="text-center">
                             Interpretation
                         </th>
 
@@ -440,11 +862,21 @@ $totalResponses = $responseData['total'];
                             ); ?>
                         </td>
 
-                        <td>
+                        <td class="text-center">
                             <?php echo number_format(
                                 $question['average'],
                                 2
                             ); ?>
+                        </td>
+
+                        <td class="text-center">
+                        <!-- SD -->
+                         <?php
+                            echo number_format(
+                                $questionSD[$question['question_id']] ?? 0,
+                                2
+                            );
+                        ?>
                         </td>
 
                         <td>
@@ -464,6 +896,17 @@ $totalResponses = $responseData['total'];
                 </tbody>
 
             </table>
+            <hr>
+            <div class="alert alert-info">
+
+                <strong>Note:</strong>
+
+                Standard deviation measures the variability of responses.
+
+                Lower values indicate greater agreement among respondents,
+                while higher values indicate more varied opinions.
+
+            </div>
 
         </div>
 
@@ -474,6 +917,209 @@ $totalResponses = $responseData['total'];
 <!-- Question Performance Table -->
 
 
+<!-- Frequency Distribution -->
+<div class="card shadow mb-2 mt-4">
+
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+       
+        <h6 class="m-0 font-weight-bold text-primary">
+            Frequency Distribution
+        </h6>
+
+        <button
+            class="btn btn-sm btn-primary"
+            type="button"
+            data-toggle="collapse"
+            data-target="#frequencyCollapse"
+            aria-expanded="false"
+            aria-controls="frequencyCollapse">
+
+            <i class="fas fa-chevron-down"></i>
+            Show / Hide
+
+        </button>
+
+    </div>
+
+    <div class="collapse" id="frequencyCollapse">
+
+        <div class="card-body">
+
+            <?php foreach($frequencyResults as $freq): ?>
+
+                <div class="mb-4">
+
+                    <strong>
+                        <?php echo htmlspecialchars($freq['question_text']); ?>
+                    </strong>
+
+                    <table class="table table-bordered table-sm mt-2">
+
+                        <thead class="thead-light">
+
+                            <tr>
+
+                                <?php
+                                krsort($freq['frequency']);
+
+                                foreach($freq['frequency'] as $scale => $count):
+                                ?>
+
+                                    <th class="text-center">
+                                        <?php echo htmlspecialchars(
+                                            $scaleLabels[$scale] . " ({$scale})" ?? $scale
+                                        ); ?>
+                                    </th>
+
+                                <?php endforeach; ?>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+
+                                <?php
+                                foreach($freq['frequency'] as $scale => $count):
+                                ?>
+
+                                    <td class="text-center">
+                                        <?php echo $count; ?>
+                                    </td>
+
+                                <?php endforeach; ?>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <?php endforeach; ?>
+
+
+        </div>
+
+    </div>
+
+</div>
+    
+
+<!-- Frequency Distribution -->
+
+<!-- Percentage Distribution -->
+
+<div class="card shadow mb-4">
+
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+
+        <h6 class="m-0 font-weight-bold text-primary">
+            <!-- <i class="fas fa-percent"></i> -->
+            Percentage Distribution
+        </h6>
+
+
+        <button
+            class="btn btn-sm btn-primary"
+            type="button"
+            data-toggle="collapse"
+            data-target="#percentageCollapse"
+            aria-expanded="false"
+            aria-controls="percentageCollapse">
+
+            <i class="fas fa-chevron-down"></i>
+            Show / Hide
+
+        </button>
+
+    </div>
+
+    <div class="collapse" id="percentageCollapse">
+
+        <div class="card-body">
+
+            <?php foreach($percentageResults as $percent): ?>
+
+                <div class="mb-4">
+
+                    <strong>
+                        <?php echo htmlspecialchars(
+                            $percent['question_text']
+                        ); ?>
+                    </strong>
+
+                    <table class="table table-bordered table-sm mt-2">
+
+                        <thead class="thead-light">
+
+                            <tr>
+
+                                <?php
+                                krsort(
+                                    $percent['percentage']
+                                );
+
+                                foreach(
+                                    $percent['percentage']
+                                    as $scale => $value
+                                ):
+                                ?>
+
+                                    <th class="text-center">
+                                        <?php echo htmlspecialchars(
+                                            $scaleLabels[$scale] . " ({$scale})" ?? $scale
+                                        ); ?>
+                                    </th>
+
+                                <?php endforeach; ?>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+
+                                <?php foreach(
+                                    $percent['percentage']
+                                    as $value
+                                ): ?>
+
+                                    <td class="text-center">
+
+                                        <?php
+                                        echo number_format(
+                                            $value,
+                                            2
+                                        );
+                                        ?>%
+
+                                    </td>
+
+                                <?php endforeach; ?>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <?php endforeach; ?>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Percentage Distribution -->
 
 
 <?php
@@ -481,4 +1127,48 @@ include '../includes/footer.php';
 ?>
 
 
+
+<script>
+
+const ctx = document.getElementById('categoryChart');
+
+new Chart(ctx, {
+
+    type: 'bar',
+
+    data: {
+
+        labels:
+            <?php echo json_encode(
+                $categoryLabels
+            ); ?>,
+
+        datasets: [{
+
+            label: 'Average Score',
+
+            data:
+                <?php echo json_encode(
+                    $categoryScores
+                ); ?>
+
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+        maintainAspectRatio: false,
+
+        scales: {
+
+            y: {
+
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+</script>
 

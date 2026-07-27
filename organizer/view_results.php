@@ -10,6 +10,17 @@ include '../includes/db_connect.php';
 $organizer_id = $_SESSION['user_id'];
 ?>
 
+<style>
+  .ai-report {
+
+    line-height: 1.5;
+
+    font-size: 18px;
+
+    color: #495057;
+}
+</style>
+
 <div class="container-fluid">
   
   
@@ -208,6 +219,7 @@ $(document).ready(function() {
       success: function(response) {
         Swal.close();
         showAISummary(response, new Date().toLocaleString());
+        
       },
       error: function() {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to generate AI summary.' });
@@ -216,23 +228,85 @@ $(document).ready(function() {
   }
 
   // Helper: render AI summary card
-  function showAISummary(content, dateGenerated) {
+  // function showAISummary(content, dateGenerated) {
+  //   $('#aiResult').fadeIn(400);
+  //   const formatted = content
+  //     .replace(/Summary:/gi, '<h5 class="text-primary mt-1"><i class="fas fa-align-left me-2"></i>Summary</h5>')
+  //     .replace(/Strengths:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Strengths</h5><ul>')
+  //     .replace(/Weaknesses:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Weeknesses</h5><ul>')
+  //     .replace(/Recommendations for Improvement:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
+  //     .replace(/\n/g, '<br>')
+  //     .concat('</ul>');
+
+  //   $('#aiContent').html(`
+  //     <div class="text-end text-muted small mb-2">
+  //       <i class="fas fa-clock me-1"></i>Generated on: ${dateGenerated}
+  //     </div>
+  //     ${formatted}
+  //   `);
+  // }
+
+function formatAIReport(content)
+{
+    const sections = {
+
+        'Executive Summary':
+            '<h4 class="text-primary "><i class="fas fa-file-alt"></i> Executive Summary</h4>',
+
+        'Question-Level Insights':
+            '<h4 class="text-success mt-4"><i class="fas fa-chart-bar"></i> Question-Level Insights</h4>',
+
+        'Positive Themes':
+            '<h4 class="text-info mt-4"><i class="fas fa-thumbs-up"></i> Positive Themes</h4>',
+
+        'Improvement Themes':
+            '<h4 class="text-warning mt-4"><i class="fas fa-tools"></i> Improvement Themes</h4>',
+
+        'Recommendations':
+            '<h4 class="text-danger mt-4"><i class="fas fa-lightbulb"></i> Recommendations</h4>',
+
+        'Overall Assessment':
+            '<h4 class="text-dark mt-4"><i class="fas fa-check-circle"></i> Overall Assessment</h4>'
+    };
+
+    Object.keys(sections).forEach(key => {
+
+        content = content.replace(
+            new RegExp(key, 'gi'),
+            sections[key]
+        );
+
+    });
+
+    content = content.replace(
+    /Event Evaluation Report:/gi,
+    '<h4 class="text-primary fw-bold"></i>Event Evaluation Report</h3>'
+    );
+
+    return content.replace(/\n/g, '<br>');
+    
+}
+
+function showAISummary(content, dateGenerated)
+{
     $('#aiResult').fadeIn(400);
-    const formatted = content
-      .replace(/Summary:/gi, '<h5 class="text-primary mt-1"><i class="fas fa-align-left me-2"></i>Summary</h5>')
-      .replace(/Strengths:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Strengths</h5><ul>')
-      .replace(/Weaknesses:/gi, '<h5 class="text-success mt-1"><i class="fas fa-check-circle me-2"></i>Weeknesses</h5><ul>')
-      .replace(/Recommendations for Improvement:/gi, '</ul><h5 class="text-warning mt-1"><i class="fas fa-lightbulb me-2"></i>Recommendations</h5><ul>')
-      .replace(/\n/g, '<br>')
-      .concat('</ul>');
+
+    const formattedContent =
+        formatAIReport(content);
 
     $('#aiContent').html(`
-      <div class="text-end text-muted small mb-2">
-        <i class="fas fa-clock me-1"></i>Generated on: ${dateGenerated}
-      </div>
-      ${formatted}
-    `);
-  }
+    <div class="ai-report">
+
+        <div class="text-end text-muted small mb-3">
+            <i class="fas fa-clock me-1"></i>
+            Generated on: ${dateGenerated}
+        </div>
+
+        ${formattedContent}
+
+    </div>
+`);
+}
 
 
 

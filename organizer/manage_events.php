@@ -1,10 +1,9 @@
 <?php
 include '../includes/auth.php';
+include '../includes/db_connect.php';
 include '../includes/header.php';
 include '../includes/sidebar.php';
 include '../includes/topbar.php';
-include '../includes/db_connect.php';
-
 
 
 
@@ -89,6 +88,13 @@ $result = mysqli_query($conn, "SELECT * FROM events WHERE organizer_id='$organiz
                 >
                 <i class="fas fa-edit"></i>
                 </a>
+
+                <a href="../shared/event_result.php?id=<?php echo $row['event_id']; ?>" 
+                    class="btn btn-sm btn-success"
+                    title="View Evaluation Results">
+                      <i class="fas fa-chart-bar"></i>
+                  </a>
+
                 <a href="manage_events.php?delete=<?php echo $row['event_id']; ?>" 
                    class="btn btn-sm btn-danger deleteBtn me-1" 
                    title="Delete Event"

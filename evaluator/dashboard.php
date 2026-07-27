@@ -38,9 +38,9 @@ if (mysqli_num_rows($checkOrg) > 0) {
 <div class="container-fluid">
 
   <!-- Page Heading -->
-  <h1 class="h3 mb-4 text-gray-800">
+  <!-- <h1 class="h3 mb-4 text-gray-800">
     Dashboard
-  </h1>
+  </h1> -->
 
 
   <?php if ($pendingOrganizer): ?>
@@ -153,7 +153,7 @@ $result = $stmt->get_result();
 
   <div class="card shadow mb-4">
     <div class="card-body table-responsive">
-      <table id="eventsTable" class="table table-bordered table-striped align-middle">
+      <table id="eventsTable" class="table table-striped align-middle">
         <thead class="table-primary">
           <tr>
             <th>#</th>
