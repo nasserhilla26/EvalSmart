@@ -23,7 +23,8 @@ $user_id = $user['user_id'];
 
 // Generate token
 $token = bin2hex(random_bytes(32));
-$expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
+$expiry = date("Y-m-d H:i:s", strtotime("+15 seconds"));
+// $expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
 // Save token
 mysqli_query($conn, "
@@ -36,7 +37,7 @@ mysqli_query($conn, "
 if (sendResetEmail($email, $token)) {
     echo json_encode([
         'success' => true,
-        'message' => 'Reset link sent to your email'
+        'message' => 'Reset link is sent to your email'
     ]);
 } else {
     echo json_encode([

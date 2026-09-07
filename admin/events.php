@@ -1,9 +1,11 @@
 <?php
 include '../includes/auth.php';
+include '../includes/role_check.php';
+require_role(1); // Admin only
+include '../includes/db_connect.php';
 include '../includes/header.php';
 include '../includes/sidebar.php';
 include '../includes/topbar.php';
-require_once '../includes/db_connect.php';
 
 
 
@@ -95,12 +97,14 @@ $result = mysqli_query($conn, "
                     <i class="fas fa-eye"></i>
                   </button>
                   <?php endif; ?>
-
+                  
+                  <?php if($isCompleted): ?>
                   <a href="../shared/event_result.php?id=<?php echo $row['event_id']; ?>" 
                     class="btn btn-sm btn-success"
                     title="View Evaluation Results">
                       <i class="fas fa-chart-bar"></i>
                   </a>
+                  <?php endif;?>
             </tr>
           <?php endwhile; ?>
         </tbody>

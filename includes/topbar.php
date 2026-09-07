@@ -26,20 +26,21 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
 
     <?php
     $user_id = $_SESSION['active_role'];
-    // $notifQuery = mysqli_query($conn, "
-    //   SELECT * FROM notifications WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 5
-    // ");
-    // $unreadCount = mysqli_num_rows(mysqli_query($conn, "
-    //   SELECT * FROM notifications WHERE user_id='$user_id' AND is_read=0
-    // "));
+    $notifQuery = mysqli_query($conn, "
+      SELECT * FROM notifications WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 5
+    ");
+    $unreadCount = mysqli_num_rows(mysqli_query($conn, "
+      SELECT * FROM notifications WHERE user_id='$user_id' AND is_read=0
+    "));
     ?> 
 
+    <?php if (!isset($_SESSION['active_role']) || $_SESSION['active_role'] != 3): ?>
     <li class="nav-item dropdown no-arrow mx-1">
       <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown">
         <i class="fas fa-bell fa-fw"></i>
-        <?php // if ($unreadCount > 0): ?> 
-          <span id="notifCount" class="badge bg-danger badge-counter"></span>
-        <?php //endif; ?>
+        <?php if ($unreadCount > 0): ?>
+          <span id="notifCount" class="badge bg-danger badge-counter"><?php echo $unreadCount; ?></span>
+        <?php endif; ?>
       </a>
 
       <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="alertsDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
@@ -49,9 +50,10 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
         <div id="notificationList" class="dropdown-list"></div>
 
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item text-center small text-gray-500" href="#">View All</a>
+        <!-- <a class="dropdown-item text-center small text-gray-500" href="#">View All</a> -->
       </div>
     </li>
+    <?php endif; ?>
 
     
 
@@ -72,7 +74,7 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
   <!-- Dropdown menu should be a <div> -->
         <div class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="userDropdown">
           
-          <?php if (isset($_SESSION['active_role'])): ?>
+          <?php if (isset($_SESSION['active_role']) && in_array($_SESSION['active_role'], [2, 3])): ?>
           <h6 class="dropdown-header">Switch Role</h6>
           
           <?php foreach ($roleNames as $roleId => $roleName): ?>
@@ -108,7 +110,7 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          Are you sure you want to log out of your account?
+          Are you sure you want to log out?
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -122,10 +124,18 @@ $activeRoleName = $roleNames[$_SESSION['active_role']] ?? 'Unknown';
 
 
 <!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
 
 
 <script>
+
+// Notification Sound
+const notificationSound = new Audio('../assets/audio/notification.mp3');
+
+// Prevent sound on first page load
+let latestNotificationID = 0;
+
+
 document.addEventListener('click', async function (e) {
   if (!e.target.classList.contains('switchRole')) return;
   e.preventDefault();
@@ -183,47 +193,184 @@ document.getElementById('alertsDropdown').addEventListener('click', async () => 
 });
 
 
+// document.addEventListener('click', function unlockAudio() {
+
+//     notificationSound.play()
+//         .then(() => {
+
+//             notificationSound.pause();
+//             notificationSound.currentTime = 0;
+
+//         })
+//         .catch(() => {});
+
+//     document.removeEventListener('click', unlockAudio);
+
+// }, { once: true });
+
+
+// load notification every 20 seconds
 async function loadNotifications() {
-  const response = await fetch('../includes/fetch_notifications.php');
-  const data = await response.json();
 
-  if (!data.success) return;
+    const response = await fetch('../includes/fetch_notifications.php');
+    const data = await response.json();
 
-  const notifList = document.getElementById('notificationList');
-  const notifBadge = document.getElementById('notifCount');
+    if (!data.success) return;
 
-  notifList.innerHTML = '';
+    // ==========================
+    // Notification Sound
+    // ==========================
 
-  if (notifBadge) {
-  notifBadge.textContent = data.unread_count > 0 ? data.unread_count : '';
-} // fuck this line. no notif when not commented out haha
+    if (latestNotificationID !== 0 &&
+        data.latest_id > latestNotificationID) {
 
-  if (data.notifications.length === 0) {
-    notifList.innerHTML = `<p class="text-center text-muted p-2 m-0">No new notifications</p>`;
-    return;
-  }
+        notificationSound.play().catch(() => {});
 
-  data.notifications.forEach(notif => {
-    const item = document.createElement('a');
-    item.href = notif.link || '#';
-    item.className = 'dropdown-item d-flex align-items-start small';
-    item.innerHTML = `
-      <div class="me-2">
-        <i class="fas fa-circle ${notif.is_read ? 'text-secondary' : 'text-primary'}"></i>
-      </div>
-      <div>
-        <div class="fw-bold">${notif.title}</div>
-        <div>${notif.message}</div>
-        <small class="text-muted">${notif.created_at}</small>
-      </div>
-    `;
-    notifList.appendChild(item);
-  });
+    }
+
+    latestNotificationID = data.latest_id;
+
+    // ==========================
+    // Notification List
+    // ==========================
+
+    const notifList = document.getElementById('notificationList');
+    const notifBadge = document.getElementById('notifCount');
+
+    notifList.innerHTML = '';
+
+    // Badge
+    if (notifBadge) {
+
+        if (data.unread_count > 0) {
+
+            notifBadge.style.display = 'inline-block';
+            notifBadge.textContent = data.unread_count;
+
+        } else {
+
+            notifBadge.style.display = 'none';
+
+        }
+
+    }
+
+    if (data.notifications.length === 0) {
+
+        notifList.innerHTML =
+            `<p class="text-center text-muted p-2 m-0">
+                No new notifications
+            </p>`;
+
+        return;
+
+    }
+
+    data.notifications.forEach(notif => {
+
+        const item = document.createElement('a');
+
+        item.href = notif.link || '#';
+
+        item.className =
+            'dropdown-item d-flex align-items-start small';
+
+        let iconColor = 'text-primary';
+
+        if (notif.type === 'success')
+            iconColor = 'text-success';
+
+        else if (notif.type === 'warning')
+            iconColor = 'text-warning';
+
+        else if (notif.type === 'danger')
+            iconColor = 'text-danger';
+
+        else if (notif.type === 'info')
+            iconColor = 'text-info';
+
+        item.innerHTML = `
+            <div class="me-2">
+                <i class="fas fa-circle ${iconColor}"></i>
+            </div>
+
+            <div>
+                <div class="fw-bold">
+                    ${notif.title}
+                </div>
+
+                <div>
+                    ${notif.message}
+                </div>
+
+                <small class="text-muted">
+                    ${notif.created_at}
+                </small>
+            </div>
+        `;
+
+        notifList.appendChild(item);
+
+    });
+
 }
 
-// Load notifications on page load
 document.addEventListener('DOMContentLoaded', loadNotifications);
-setInterval(loadNotifications, 15000); //auto-refresh every 15secs for notif
+
+// Every 20 seconds
+setInterval(loadNotifications, 20000);
+
+
+
+
+// async function loadNotifications() {
+//   const response = await fetch('../includes/fetch_notifications.php');
+//   const data = await response.json();
+
+//   if (!data.success) return;
+
+//   const notifList = document.getElementById('notificationList');
+//   const notifBadge = document.getElementById('notifCount');
+
+//   notifList.innerHTML = '';
+
+//   if (notifBadge) {
+//   notifBadge.textContent = data.unread_count > 0 ? data.unread_count : '';
+// } // fuck this line. no notif when not commented out haha
+
+//   if (data.notifications.length === 0) {
+//     notifList.innerHTML = `<p class="text-center text-muted p-2 m-0">No new notifications</p>`;
+//     return;
+//   }
+
+//   data.notifications.forEach(notif => {
+//     const item = document.createElement('a');
+//     item.href = notif.link || '#';
+//     item.className = 'dropdown-item d-flex align-items-start small';
+    
+//     let iconColor = 'text-primary';
+//     if (notif.type === 'success') iconColor = 'text-success';
+//     else if (notif.type === 'warning') iconColor = 'text-warning';
+//     else if (notif.type === 'danger') iconColor = 'text-danger';
+//     else if (notif.type === 'info') iconColor = 'text-info';
+    
+//     item.innerHTML = `
+//       <div class="me-2">
+//         <i class="fas fa-circle ${iconColor}"></i>
+//       </div>
+//       <div>
+//         <div class="fw-bold">${notif.title}</div>
+//         <div>${notif.message}</div>
+//         <small class="text-muted">${notif.created_at}</small>
+//       </div>
+//     `;
+//     notifList.appendChild(item);
+//   });
+// }
+
+// // Load notifications on page load
+// document.addEventListener('DOMContentLoaded', loadNotifications);
+// setInterval(loadNotifications, 20000); //auto-refresh every 5mins for notif
 
 
 </script>

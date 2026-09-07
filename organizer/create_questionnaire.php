@@ -105,8 +105,6 @@ $scales = mysqli_query($conn, "
 
 <?php include '../includes/footer.php'; ?>
 
-<!-- SweetAlert2
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
 
 <!-- JavaScript Logic -->
 <script>
@@ -115,7 +113,7 @@ $(document).ready(function() {
 
   
 
-  // ➕ Add Question Block
+  // Add Question Block
   $('#addQuestionBtn').click(function() {
     questionCount++;
     const html = `
@@ -148,7 +146,7 @@ $(document).ready(function() {
           <select name="questions[${questionCount}][type]" class="form-select question-type" required>
             <option value="rating">Likert Scale (Rating)</option>
             <option value="text">Text Response</option>
-            <option value="multiple">Multiple Choice</option>
+            
           </select>
         </div>
 

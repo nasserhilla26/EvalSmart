@@ -20,7 +20,13 @@ $result = mysqli_query($conn, "SELECT * FROM events WHERE organizer_id='$organiz
 ?>
 
 <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Manage My Events</h1>
+  <div class="row">
+    <div class="col"><h1 class="h3 mb-4 text-gray-800">Manage My Events</h1></div>
+    <div class="col text-end">
+      <a href="create_event.php" class="btn btn-primary "><i class="fa fa-plus"></i> Create New Event</a>
+    </div>
+  </div>
+  
 
   <div class="card shadow mb-4">
     <div class="card-body table-responsive">
@@ -89,18 +95,24 @@ $result = mysqli_query($conn, "SELECT * FROM events WHERE organizer_id='$organiz
                 <i class="fas fa-edit"></i>
                 </a>
 
+                <!-- View Results -->
+                <?php if($row['status'] === "Completed"):?>
                 <a href="../shared/event_result.php?id=<?php echo $row['event_id']; ?>" 
                     class="btn btn-sm btn-success"
                     title="View Evaluation Results">
                       <i class="fas fa-chart-bar"></i>
-                  </a>
+                </a>
+                <?php endif;?>
 
+                <?php if($row['status'] === "Cancelled"):?>
+                <!-- Delete Button -->
                 <a href="manage_events.php?delete=<?php echo $row['event_id']; ?>" 
                    class="btn btn-sm btn-danger deleteBtn me-1" 
                    title="Delete Event"
                    >
                    <i class="fas fa-trash"></i>
                   </a>
+                <?php endif;?>
               </td>
             </tr>
           <?php endwhile; ?>

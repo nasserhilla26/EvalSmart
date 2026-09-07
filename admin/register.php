@@ -1,16 +1,25 @@
 <?php
-session_start();
-if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
-    switch ($_SESSION['role_id']) {
-        case 1: header("Location: admin/dashboard.php"); break;
-        case 2: header("Location: organizer/dashboard.php"); break;
-        case 3: header("Location: evaluator/dashboard.php"); break;
-        default: header("Location: index.php");
-    }
-    exit;
-}
+include '../includes/auth.php';
+include '../includes/role_check.php';
+require_role(1); // Admin only
+include '../includes/db_connect.php';
+include '../includes/header.php';
+include '../includes/sidebar.php';
+include '../includes/topbar.php';
 
-include 'includes/db_connect.php';
+
+
+// if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
+//     switch ($_SESSION['role_id']) {
+//         case 1: header("Location: admin/dashboard.php"); break;
+//         case 2: header("Location: organizer/dashboard.php"); break;
+//         case 3: header("Location: evaluator/dashboard.php"); break;
+//         default: header("Location: index.php");
+//     }
+//     exit;
+// }
+
+
 
 $message = "";
 
@@ -49,20 +58,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 mysqli_query($conn, "INSERT INTO user_roles (user_id, role_id) VALUES ($user_id, 3)");
             }
 
-            $message = "Registration successful!";
+            $message = "Registration successful! You can now login.";
         } else {
             $message = "Error: " . mysqli_error($conn);
         }
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Register | EvalSmart</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
+
+  <!-- <style>
     body { height: 100vh; }
     .split { height: 100%; display: flex; flex-wrap: wrap; }
     .split .left, .split .right { flex: 1 1 50%; min-height: 50vh; }
@@ -76,14 +80,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       .split .left { display: none; }
       .split .right { flex: 1 1 100%; }
     }
-  </style>
-</head>
-<body>
-<div class="split">
-  <div class="left"></div>
-  <div class="right d-flex align-items-center justify-content-center">
-    <div class="w-75">
-      <h3 class="mb-4 text-center">Create Account</h3>
+  </style> -->
+
+<div class="container">
+
+  <h3 class="mb-4">Register New Account</h3>
+
+  <div class="card shadow border-0">
+    <div class="card-body">
       <?php if($message): ?>
         <div class="alert alert-info"><?php echo $message; ?></div>
       <?php endif; ?>
@@ -137,23 +141,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <label>Position</label>
           <select id="position" name="position" class="form-select" required>
             <option value="">-- Select Position --</option>
-            <option value="Program Heads">Program Heads</option>
+            <option value="Dean">Dean</option>
+            <option value="Program Head">Program Head</option>
             <option value="Faculty">Faculty</option>
             <option value="NTP">NTP</option>
             <option value="Student">Student</option>
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Register</button>
+        <button type="submit" class="btn btn-primary">Register</button>
       </form>
-      <div class="text-center mt-3">
-        <a href="login.php">Already have an account? Login</a>
-      </div>
+     
     </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 
 
@@ -209,5 +211,3 @@ document.getElementById('department').addEventListener('change', function() {
 
 
 </script>
-</body>
-</html>

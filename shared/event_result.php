@@ -12,10 +12,7 @@ $user_id = $_SESSION['user_id'];
 $roles = $_SESSION['roles'] ?? [];
 
 //block evaluators
-if (
-    !in_array(1, $roles) &&
-    !in_array(2, $roles)
-) {
+if (!in_array(1, $roles) && !in_array(2, $roles)) {
 
     echo "<script>
             alert('Unauthorized Access');
@@ -281,7 +278,7 @@ $categorySD = getCategoryStandardDeviation(
 </style>
 
 
-<div class="container">
+<div class="container-fluid">
 
     <?php if(empty($event['questionnaire_id'])): ?>
 
@@ -304,16 +301,22 @@ $categorySD = getCategoryStandardDeviation(
             Event Evaluation Dashboard
         </h1>
         </div>
+
+        <div class="col d-flex flex-wrap justify-content-end">
+        
+        </div>
         
         <div class="col text-end">
-            <a href="../reports/generate_pdf.php?event_id=<?php echo $event_id; ?>"
-                    target="_blank"
-                    class="btn btn-danger btn-md">
+            <?php if(in_array(2, $roles)):?>
+                <a href="../organizer/view_individual_results.php" class="btn btn-outline-primary mx-3">
+                    <i class="fas fa-eye"></i> Evaluator Response
+                </a>
+            <?php endif; ?>
 
-                        <i class="fas fa-file-pdf"></i>
-                        Export PDF Report
-
-                    </a>
+            <a href="../reports/generate_pdf.php?event_id=<?php echo $event_id; ?>" target="_blank" class="btn btn-danger btn-md">
+                <i class="fas fa-file-pdf"></i>
+                Download Report
+            </a>
         </div>
     </div>
 
@@ -1121,6 +1124,27 @@ $categorySD = getCategoryStandardDeviation(
 
 <!-- Percentage Distribution -->
 
+<div class="text-end my-4">
+    <button id="generateAI" class="btn btn-primary" data-event-id="<?= $event_id; ?>">
+    <i class="fas fa-robot"></i> Generate AI Summary & Recommendations
+    </button>
+</div>
+
+<!-- AI Summary & Recommendation Output-->
+
+<div id="aiResult" class="my-4" style="display:none;">
+    <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-4">
+        <h4 class="card-title text-primary mb-3">
+        <i class="fas fa-robot me-2"></i>AI Evaluation Summary
+        </h4>
+        <div id="aiContent" class="text-dark"></div>
+    </div>
+    </div>
+</div>
+
+<!-- AI Summary & Recommendation -->
+
 
 <?php
 include '../includes/footer.php';
@@ -1169,6 +1193,139 @@ new Chart(ctx, {
         }
     }
 });
+
+
+// Generate or View Existing AI Summary
+  $('#generateAI').click(function() {
+    var eventId = $('#generateAI').data('event-id');
+    
+    
+    if (!eventId) return;
+
+    $.ajax({
+      url: '../ai/fetch_ai_summary.php',
+      type: 'GET',
+      data: { event_id: eventId },
+      dataType: 'json',
+      success: function(ai) {
+        if (ai.success && ai.summary) {
+          Swal.fire({
+            title: 'AI Summary Already Exists',
+            text: 'A summary for this event already exists. Do you want to regenerate it?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Regenerate',
+            cancelButtonText: 'View Existing',
+            reverseButtons: true
+          }).then((result) => {
+            if (result.isConfirmed) {
+              generateAISummary(eventId, true);
+            } else {
+              showAISummary(ai.summary, ai.generated_on);
+            }
+          });
+        } else {
+          generateAISummary(eventId, false);
+        }
+      },
+      error: function() {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to check AI summary.' });
+      }
+    });
+  });
+
+  // Helper: generate AI summary via Ollama
+  function generateAISummary(eventId, regenerate = false) {
+    Swal.fire({
+      title: regenerate ? 'Regenerating AI Summary...' : 'Generating AI Summary & Recommendation...',
+      text: 'Please wait a few seconds.',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    $.ajax({
+      url: '../ai/ai_summary.php',
+      type: 'POST',
+      data: { event_id: eventId },
+      success: function(response) {
+        Swal.close();
+        showAISummary(response, new Date().toLocaleString());
+        
+      },
+      error: function() {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to generate AI summary.' });
+      }
+    });
+  }
+
+
+function formatAIReport(content)
+{
+    const sections = {
+
+        'Executive Summary':
+            '<h4 class="text-primary "><i class="fas fa-file-alt"></i> Executive Summary</h4>',
+
+        'Question-Level Insights':
+            '<h4 class="text-success mt-4"><i class="fas fa-chart-bar"></i> Question-Level Insights</h4>',
+
+        'Strengths:':
+            '<h4 class="text-success mt-4"><i class="fas fa-chart-bar"></i> Strengths</h4>',
+
+        'Weaknesses:':
+            '<h4 class="text-success mt-4"><i class="fas fa-chart-bar"></i> Weaknesses</h4>',
+
+        'Positive Themes':
+            '<h4 class="text-info mt-4"><i class="fas fa-thumbs-up"></i> Positive Themes</h4>',
+
+        'Improvement Themes':
+            '<h4 class="text-warning mt-4"><i class="fas fa-tools"></i> Improvement Themes</h4>',
+
+        'Recommendations':
+            '<h4 class="text-danger mt-4"><i class="fas fa-lightbulb"></i> Recommendations</h4>',
+
+        'Overall Assessment':
+            '<h4 class="text-dark mt-4"><i class="fas fa-check-circle"></i> Overall Assessment</h4>'
+    };
+
+    Object.keys(sections).forEach(key => {
+
+        content = content.replace(
+            new RegExp(key, 'gi'),
+            sections[key]
+        );
+
+    });
+
+    content = content.replace(
+    /Event Evaluation Report:/gi,
+    '<h4 class="text-primary fw-bold"></i>Event Evaluation Report</h3>'
+    );
+
+    return content.replace(/\n/g, '<br>');
+    
+}
+
+function showAISummary(content, dateGenerated)
+{
+    $('#aiResult').fadeIn(400);
+
+    const formattedContent =
+        formatAIReport(content);
+
+    $('#aiContent').html(`
+    <div class="ai-report">
+
+        <div class="text-end text-muted small mb-3">
+            <i class="fas fa-clock me-1"></i>
+            Generated on: ${dateGenerated}
+        </div>
+
+        ${formattedContent}
+
+    </div>
+`);
+}
 
 </script>
 

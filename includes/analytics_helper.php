@@ -412,15 +412,15 @@ function getQuestionStandardDeviation($conn, $event_id)
                 $variance += pow(
                     $rating - $mean,
                     2
-                );
+                ); // calculation of Standard Deviation
             }
 
-            $variance /= $count;
+            $variance /= $count; // count of respondents
 
-            $sd = sqrt($variance);
+            $sd = sqrt($variance); // convert to Square root
         }
 
-        $output[$qid] = round($sd, 2);
+        $output[$qid] = round($sd, 2); 
     }
 
     return $output;

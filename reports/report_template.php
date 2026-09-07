@@ -446,7 +446,7 @@ th{
 <!-- AI Summarry  -->
 
 <div class="section-title">
-    AI Summary & Recommendations
+    Summary & Recommendations
 </div>
 
 <div>

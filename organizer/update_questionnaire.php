@@ -3,12 +3,18 @@ include '../includes/auth.php';
 include '../includes/role_check.php';
 require_role(2);
 include '../includes/db_connect.php';
+include '../includes/notification_service.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['questionnaire_id']);
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $organizer_id = $_SESSION['user_id'];
+
+    $first_name = $_SESSION['first_name'];
+    $last_name = $_SESSION['last_name'];
+    $full_name = $first_name ." ". $last_name;
+
     $scale_id = intval($_POST['scale_id']);
 
     // Verify ownership
@@ -215,6 +221,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $saved++;
         }
     }
+
+
+    notifyQuestionnaireModified($conn, 1, $full_name, $title, $organizer_id);
 
     echo "Questionnaire updated successfully with $saved question(s).";
 

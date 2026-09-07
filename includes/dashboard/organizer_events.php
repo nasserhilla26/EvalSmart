@@ -9,7 +9,7 @@
       <p class="text-muted">No events found.</p>
     <?php else: ?>
 
-      <table class="table table-bordered">
+      <table id="recentEventsTable" class="table table-bordered ">
         <thead>
           <tr>
             <th>Event</th>
@@ -33,3 +33,4 @@
 
   </div>
 </div>
+

@@ -105,6 +105,7 @@ SELECT
     e.event_title,
     e.event_date,
     e.event_description,
+    e.status,
     q.title AS questionnaire_title,
     eq.id AS eq_id,
     (
@@ -186,8 +187,16 @@ $result = $stmt->get_result();
                   <button class="btn btn-sm btn-secondary" disabled>
                     <i class="fas fa-check"></i> Evaluated
                   </button>
+                <?php elseif($row['status'] === "Completed"): ?>
+                  <button class="btn btn-sm btn-secondary" disabled>
+                    <i class="fas fa-check"></i> Completed
+                  </button>
+                <?php elseif($row['status'] === "Cancelled"): ?>
+                  <button class="btn btn-sm btn-secondary" disabled>
+                    <i class="fas fa-times"></i> Cancelled
+                  </button>
                 <?php else: ?>
-                  <a href="event_evaluate.php?id=<?php echo $row['event_id']; ?>" 
+                  <a href="event_evaluate.php?event_id=<?php echo $row['event_id']; ?>&eq_id=<?php echo $row['eq_id']; ?>;" 
                      class="btn btn-sm btn-primary">
                      <i class="fas fa-edit"></i> Evaluate
                   </a>

@@ -18,21 +18,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             VALUES ('$organizer_id', '$title', '$description', '$date', '$venue')";
 
     if (mysqli_query($conn, $sql)) {
-        $message = "<div class='alert alert-success'>Event created successfully!</div>";
-    } else {
-        $message = "<div class='alert alert-danger'>Error: " . mysqli_error($conn) . "</div>";
-    }
+
+          echo "
+          <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Event Created!',
+                      text: 'The event has been created successfully.',
+                      confirmButtonText: 'OK',
+                      allowOutsideClick: false
+                  }).then(() => {
+                      window.location.href = 'manage_events.php';
+                  });
+              });
+          </script>";
+
+      } else {
+
+          echo "
+          <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Creation Failed',
+                      text: " . json_encode(mysqli_error($conn)) . ",
+                      confirmButtonText: 'OK'
+                  });
+              });
+          </script>";
+
+      }
 }
 ?>
 
 <div class="container-fluid">
   <h1 class="h3 mb-4 text-gray-800">Create Event</h1>
 
-  <?php echo $message; ?>
 
   <div class="card shadow mb-4">
     <div class="card-body">
-      <form method="POST">
+      <form method="POST" id="createEventForm">
         <div class="mb-3">
           <label>Event Title</label>
           <input type="text" name="event_title" class="form-control" required>
@@ -45,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="mb-3">
           <label>Date</label>
-          <input type="date" name="event_date" class="form-control" min="<?php echo date('Y-m-d'); ?>" required>
+          <input type="date" name="event_date" class="form-control" required>
         </div>
 
         <div class="mb-3">
@@ -58,5 +84,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
   </div>
 </div>
+
+
+<script>
+document.getElementById('createEventForm').addEventListener('submit', function(e) {
+
+    e.preventDefault();
+
+    Swal.fire({
+        title: 'Create Event?',
+        text: 'Are you sure you want to create this event?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Create',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            this.submit();
+        }
+
+    });
+
+});
+</script>
+
 
 <?php include '../includes/footer.php'; ?>

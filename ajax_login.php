@@ -4,17 +4,50 @@ include 'includes/db_connect.php';
 header('Content-Type: application/json');
 
 // Get inputs
-$email = mysqli_real_escape_string($conn, $_POST['email'] ?? '');
+$email = trim(mysqli_real_escape_string($conn, $_POST['email'] ?? ''));
 $password = $_POST['password'] ?? '';
 
+$schoolEmail = $email;
+
 // Validate inputs
-if (!$email || !$password) {
+if (!$email && !$password) {
     echo json_encode([
         'success' => false,
         'message' => 'Please enter email and password.'
     ]);
     exit;
 }
+
+if (!$email) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please enter your email.'
+    ]);
+    exit;
+}
+
+if (!$password) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please enter your password.'
+    ]);
+    exit;
+}
+
+// // Check if the input ends exactly with the required domain
+// if (str_ends_with($email, '@pczc.edu.ph')) {
+//     echo json_encode([
+//         'success' => false,
+//         'message' => 'Access granted. Valid school email.'
+//     ]);
+//     exit;
+// } else {
+//     echo json_encode([
+//         'success' => false,
+//         'message' => 'Access denied. You must use a pczc.edu.ph email address.'
+//     ]);
+//     exit;
+// }
 
 // Fetch user
 $sql = "SELECT * FROM users WHERE email='$email' LIMIT 1";
@@ -34,7 +67,7 @@ $user = mysqli_fetch_assoc($result);
 if ($user['status'] === 'Inactive') {
     echo json_encode([
         'success' => false,
-        'message' => 'Your account is deactivated.'
+        'message' => 'Your account is deactivated, Please contact the Admin.'
     ]);
     exit;
 }
@@ -43,7 +76,7 @@ if ($user['status'] === 'Inactive') {
 if (!password_verify($password, $user['password'])) {
     echo json_encode([
         'success' => false,
-        'message' => 'Invalid password.'
+        'message' => 'Incorrect password.'
     ]);
     exit;
 }

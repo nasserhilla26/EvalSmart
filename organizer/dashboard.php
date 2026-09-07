@@ -95,7 +95,7 @@ $data = [
             <ul class="list-group">
               <li class="list-group-item"><a href="create_event.php"><i class="fas fa-calendar-plus"></i> Create Event</a></li>
               <li class="list-group-item"><a href="manage_events.php"><i class="fas fa-list"></i> My Events</a></li>
-              <li class="list-group-item"><a href="view_results.php"><i class="fas fa-poll"></i> View Evaluation Results</a></li>
+              <!-- <li class="list-group-item"><a href="view_results.php"><i class="fas fa-poll"></i> View Evaluation Results</a></li> -->
             </ul>
           </div>
         </div>
@@ -106,8 +106,11 @@ $data = [
      <?php include '../includes/dashboard/organizer_stats.php'; ?>
 
     <div class="row">
-      <div class="col-lg-6">
-        <?php include '../includes/dashboard/organizer_events.php'; ?>
+      <div class="col">
+          <?php include '../includes/dashboard/organizer_events.php'; ?>
+      </div>
+    </div>
+
       </div>
     </div>
   
@@ -115,3 +118,14 @@ $data = [
 <!-- /.container-fluid -->
 
 <?php include '../includes/footer.php'; ?>
+
+
+<script>
+$(document).ready(function() {
+  $('#recentEventsTable').DataTable({
+    pageLength: 5,
+    lengthMenu: [5, 10, 25, 50],
+    order: [[1, 'desc']], // Default sort by Date column
+  });
+});
+</script>

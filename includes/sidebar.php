@@ -36,7 +36,7 @@ $dashboardLink = match($role) {
 ?>
 
 <!-- Sidebar -->
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion sticky-top" id="accordionSidebar">
 
   <!-- Sidebar - Brand -->
   <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?php echo $dashboardLink; ?>">
@@ -105,12 +105,12 @@ $dashboardLink = match($role) {
   <?php if ($activeRole == 2): ?>
     <div class="sidebar-heading">Event Management</div>
 
-    <li class="nav-item">
+    <!-- <li class="nav-item">
       <a class="nav-link" href="../organizer/create_event.php">
         <i class="fas fa-calendar-plus"></i>
         <span>Create Event</span>
       </a>
-    </li>
+    </li> -->
 
     <li class="nav-item">
       <a class="nav-link" href="../organizer/manage_events.php">
@@ -119,32 +119,32 @@ $dashboardLink = match($role) {
       </a>
     </li>
 
-    <li class="nav-item">
+    <!-- <li class="nav-item">
       <a class="nav-link" href="../organizer/create_questionnaire.php">
         <i class="fas fa-poll"></i>
         <span>Create Questionnaire</span>
       </a>
-    </li>
+    </li> -->
 
     <li class="nav-item">
       <a class="nav-link" href="../organizer/manage_questionnaires.php">
         <i class="fas fa-tasks"></i>
-        <span>Manage Questionnaires</span>
+        <span>My Questionnaires</span>
       </a>
     </li>
 
-    <li class="nav-item">
+    <!-- <li class="nav-item">
       <a class="nav-link" href="../organizer/view_results.php">
         <i class="fas fa-chart-pie"></i>
         <span>Evaluation Results</span>
       </a>
-    </li>
+    </li> -->
   <?php endif; ?>
 
 
   <!-- ==================== EVALUATOR MENU ==================== -->
   <?php if ($activeRole == 3): ?>
-    <div class="sidebar-heading">Evaluation</div>
+    <!-- <div class="sidebar-heading">Evaluation</div> -->
 
     <!-- <li class="nav-item">
       <a class="nav-link" href="#">
@@ -161,7 +161,7 @@ $dashboardLink = match($role) {
     </li> -->
   <?php endif; ?>
 
-  <hr class="sidebar-divider">
+  <!-- <hr class="sidebar-divider"> -->
 
   <li class="nav-item">
       <a class="nav-link" href="../account/profile.php">
@@ -173,10 +173,6 @@ $dashboardLink = match($role) {
 
 </ul>
 <!-- End of Sidebar -->
-
-
-
-
 
 
 <!-- Logout Confirmation Modal -->

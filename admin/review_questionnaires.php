@@ -9,7 +9,7 @@ include '../includes/topbar.php';
 
 // Fetch all questionnaires created by organizers
 $result = mysqli_query($conn, "
-    SELECT q.*, u.first_name, u.last_name 
+    SELECT q.*, u.user_id, u.first_name, u.last_name 
     FROM questionnaire q 
     JOIN users u ON q.created_by = u.user_id 
     ORDER BY q.created_at DESC
@@ -92,7 +92,7 @@ $result = mysqli_query($conn, "
 
         <div class="mb-3">
           <label>Comment</label>
-          <textarea name="admin_comment" id="q_comment" class="form-control" rows="3"></textarea>
+          <textarea name="admin_comment" id="q_comment" class="form-control" rows="2" required></textarea>
         </div>
       </div>
       <div class="modal-footer">

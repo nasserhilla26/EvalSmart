@@ -8,6 +8,7 @@ include '../includes/header.php';
 include '../includes/sidebar.php';
 include '../includes/topbar.php';
 
+
 $organizer_id = (int)$_SESSION['user_id'];
 
 // Fetch event_questionnaire entries for events owned by this organizer
@@ -26,7 +27,8 @@ $res = $stmt->get_result();
 ?>
 
 <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Manage Targets (Department / Program / Position)</h1>
+  <h1 class="h3 text-gray-800">Who can see your Evaluation?</h1>
+  <p>Department / Program / Position</p>
 
   <div class="card shadow mb-4">
     <div class="card-body table-responsive">
@@ -64,7 +66,7 @@ $res = $stmt->get_result();
             </td>
             <td class="text-center">
               <button class="btn btn-sm btn-info openTargets" data-eq-id="<?= $row['eq_id']; ?>">
-                <i class="fas fa-bullseye"></i> Manage Targets
+                <i class="fas fa-bullseye"></i> Manage
               </button>
             </td>
           </tr>
@@ -211,7 +213,7 @@ $(document).ready(function(){
 
   // ---------- WHERE to put the snippet you asked ----------
   // The snippet below is the exact handler that opens the modal and loads targets.
-  // Put this inside this page's <script> block (here is the right place).
+  // Put this inside this page's <script> block.
   $(document).on('click', '.openTargets', function() {
       const eq_id = $(this).data('eq-id');
 

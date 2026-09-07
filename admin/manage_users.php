@@ -22,11 +22,14 @@ $result = mysqli_query($conn, $query);
 ?>
 
 <div class="container-fluid">
-  <h1 class="h3 mb-4 text-gray-800">Manage Users</h1>
+  <div class="row">
+  <div class="col"><h1 class="h3 text-gray-800">Manage Users</h1></div>
+  <div class="col text-end"><a href="register.php" class="btn btn-primary"><i class="fa fa-plus"></i> Add New User</a></div>
+  </div>
 
   <!-- FILTER BUTTONS -->
   <div class="mb-3">
-    <h5>Filter:</h5>
+    <span>Filter: </span>
     <a href="?filter=all" class="btn btn-secondary btn-sm">All</a>
     <a href="?filter=pending" class="btn btn-warning btn-sm">Pending</a>
     <a href="?filter=inactive" class="btn btn-danger btn-sm">Inactive</a>

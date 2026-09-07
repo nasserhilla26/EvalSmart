@@ -78,15 +78,15 @@ $result = mysqli_query($conn, $query);
 
   <div class="row">
     <div class="col">
-      <h1 class="h3 mb-4 text-gray-800">Manage Questionnaires</h1>
+      <h1 class="h3 mb-4 text-gray-800">My Questionnaires</h1>
     </div>
     <div class="col text-end">
 
-      <a href="create_questionnaire.php" class="btn btn-outline-primary mx-3">
+      <a href="create_questionnaire.php" class="btn btn-primary mx-3">
         <i class="fas fa-plus"></i> Create New Questionnaire
       </a>
 
-      <a href="manage_targets.php" class="btn btn-secondary">
+      <a href="manage_targets.php" class="btn btn-info">
         <i class="fas fa-eye"></i> Assign Evaluators
       </a>
 
@@ -98,14 +98,14 @@ $result = mysqli_query($conn, $query);
 
   <div class="card shadow mb-4">
     <div class="card-body table-responsive">
-      <table id="questionnaireTable" class="table table-bordered table-striped align-middle">
-        <thead class="table-primary">
+      <table id="questionnaireTable" class="table align-middle">
+        <thead class="text-dark">
           <tr>
             <th>#</th>
             <th>Title</th>
             <th>Scale</th>
             <th>Questions</th>
-            <th>Assigned To</th>
+            <th width="150">Assigned To</th>
             <th>Status</th>
             <th width="80">Admin Comment</th>
             <th>Created At</th>
@@ -157,22 +157,29 @@ $result = mysqli_query($conn, $query);
                   <?php
                   // get events for unlink buttons
                   $events = mysqli_query($conn, "
-                        SELECT e.event_id, e.event_title 
+                        SELECT e.event_id, e.event_title, e.status 
                         FROM event_questionnaire eq
                         JOIN events e ON eq.event_id = e.event_id
                         WHERE eq.questionnaire_id = '{$row['questionnaire_id']}'
                     ");
 
-                  while ($ev = mysqli_fetch_assoc($events)): ?>
-                    <span class="badge bg-success m-1">
-                      <?php echo htmlspecialchars($ev['event_title']); ?>
+                    while ($ev = mysqli_fetch_assoc($events)): ?>
+                    <span class="badge bg-info m-1">
+                      <?php echo htmlspecialchars($ev['event_title']); 
+                      
+                        if($ev['status'] === "Completed" || $ev['status'] === "Cancelled"): // hide unlink button if event Status is Ongoing.
+                      ?>
                       <button type="button" class="btn btn-sm text-light btn-unlink"
                         data-event="<?php echo $ev['event_id']; ?>"
                         data-questionnaire="<?php echo $row['questionnaire_id']; ?>" title="Unlink from this event">
                         <i class="fas fa-times"></i>
                       </button>
                     </span>
-                  <?php endwhile; ?>
+
+                    <?php 
+                        endif;
+                      endwhile; 
+                    ?>
                 <?php else: ?>
                   <span class="badge bg-secondary">Unassigned</span>
                 <?php endif; ?>
@@ -230,11 +237,16 @@ $result = mysqli_query($conn, $query);
                   <i class="fas fa-link"></i>
                 </a>
 
+
                 <!-- Delete -->
+                <?php if ($row['linked_events'] == 0): ?>
                 <button type="button" class="btn btn-sm btn-danger deleteBtn"
                   data-id="<?php echo $row['questionnaire_id']; ?>" title="Delete Questionnaire">
                   <i class="fas fa-trash"></i>
                 </button>
+                <?php endif; ?>
+
+
 
               </td>
             </tr>
@@ -510,7 +522,7 @@ $result = mysqli_query($conn, $query);
             title: 'Assigned Successfully!',
             text: response,
             confirmButtonColor: '#3085d6'
-          }).then(() => location.reload());
+          }).then(() => window.location.href = 'manage_targets.php');
         },
         error: function () {
           Swal.fire({

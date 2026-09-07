@@ -3,6 +3,7 @@ include '../includes/auth.php';
 include '../includes/role_check.php';
 require_role(2);
 include '../includes/db_connect.php';
+include '../includes/notification_service.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -11,6 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = trim($_POST['description']);
     $created_by = $_SESSION['user_id'];
     $scale_id = intval($_POST['scale_id']);
+
+    $first_name = $_SESSION['first_name'];
+    $last_name = $_SESSION['last_name'];
+    $full_name = $first_name . " " . $last_name;
 
     mysqli_begin_transaction($conn);
 
@@ -189,8 +194,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         |--------------------------------------------------------------------------
         */
         mysqli_commit($conn);
+        
+        notifyQuestionnaireSubmitted($conn, 1,$full_name,$title,$created_by); // notification
 
         echo "'{$title}' saved successfully with {$saved} question(s).";
+
 
     } catch (Exception $e) {
 

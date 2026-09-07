@@ -5,6 +5,7 @@ include '../includes/role_check.php';
 require_role(2);
 include '../includes/db_connect.php';
 header('Content-Type: application/json');
+include '../includes/notification_service.php';
 
 $organizer_id = (int)$_SESSION['user_id'];
 $eq_id = isset($_POST['event_questionnaire_id']) ? intval($_POST['event_questionnaire_id']) : 0;
@@ -18,15 +19,19 @@ if (!$eq_id) {
 }
 
 // verify ownership (join to events)
-$sql = "SELECT eq.id FROM event_questionnaire eq JOIN events e ON eq.event_id = e.event_id WHERE eq.id = ? AND e.organizer_id = ? LIMIT 1";
+$sql = "SELECT eq.id, e.event_title FROM event_questionnaire eq JOIN events e ON eq.event_id = e.event_id WHERE eq.id = ? AND e.organizer_id = ? LIMIT 1";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('ii', $eq_id, $organizer_id);
 $stmt->execute();
 $res = $stmt->get_result();
+// ensure we got a result row
 if ($res->num_rows === 0) {
   echo json_encode(['success'=>false,'message'=>'Unauthorized or not found']);
   exit;
 }
+
+$row = $res->fetch_assoc();
+$event_title = isset($row['event_title']) ? $row['event_title'] : '';
 
 // Start transaction (if using InnoDB). If MyISAM, this still works but no transaction.
 $conn->begin_transaction();
@@ -52,5 +57,9 @@ foreach ($targets as $t) {
 }
 
 $conn->commit();
+
+// Notify evaluators about the updated targets (pass questionnaire id)
+// notifyEvaluationAssigned($conn, $eq_id, $event_title, $organizer_id);
+
 echo json_encode(['success'=>true, 'message'=>"Saved {$inserted} target(s)."]);
 exit;

@@ -42,7 +42,7 @@ function sendResetEmail($toEmail, $token) {
             <p>Click the link below:</p>
             <a href='$resetLink'>$resetLink</a>
             <br><br>
-            <small>This link will expire in 1 hour.</small>
+            <small>This link will expire in 5 mins.</small>
         ";
 
         $mail->send();

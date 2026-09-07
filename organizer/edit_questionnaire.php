@@ -291,9 +291,9 @@ $categories = mysqli_query($conn, "
               <div class="mb-3">
                 <label class="form-label">Question Type</label>
                 <select name="questions[<?php echo $count; ?>][type]" class="form-select question-type" required>
-                  <option value="rating" <?php echo ($q['question_type']=='rating')?'selected':''; ?>>Rating (1–5)</option>
-                  <option value="text" <?php echo ($q['question_type']=='text')?'selected':''; ?>>Text Response</option>
-                  <option value="multiple" <?php echo ($q['question_type']=='multiple')?'selected':''; ?>>Multiple Choice</option>
+                  <option value="rating" <?php echo ($q['question_type']=='rating')?'selected':''; ?>>Likert Scale</option>
+                  <option value="text" <?php echo ($q['question_type']=='text')?'selected':''; ?>>Short Response</option>
+                  <!-- <option value="multiple" <?php echo ($q['question_type']=='multiple')?'selected':''; ?>>Multiple Choice</option> -->
                 </select>
               </div>
 
@@ -357,9 +357,8 @@ $(document).ready(function() {
         <div class="mb-3">
           <label class="form-label">Question Type</label>
           <select name="questions[${questionCount}][type]" class="form-select question-type" required>
-            <option value="rating">Rating (1–5)</option>
+            <option value="rating">Likert Scale</option>
             <option value="text">Text Response</option>
-            <option value="multiple">Multiple Choice</option>
           </select>
         </div>
 

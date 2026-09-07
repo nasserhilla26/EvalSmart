@@ -1,6 +1,7 @@
 <?php
 include '../includes/auth.php';
 include '../includes/role_check.php';
+include '../includes/notification_service.php';
 
 if (!in_array($_SESSION['active_role'], [1,2])) {
     die("Unauthorized access");
@@ -31,6 +32,7 @@ if (!$event_id) {
 
 // $event = mysqli_fetch_assoc($eventQuery);
 
+$organizer_id = $_SESSION['user_id'];
 
 $eventQuery = mysqli_query($conn,"
     SELECT
@@ -56,6 +58,8 @@ $eventQuery = mysqli_query($conn,"
 ");
 
 $event = mysqli_fetch_assoc($eventQuery);
+
+$event_title = $event['event_title'];
 
 if (empty($event['scale_id'])) {
 
@@ -515,6 +519,7 @@ try {
 
     if (mysqli_query($conn, $query)) {
         echo $ai_output; // matches your existing frontend output (plain text)
+        notifyAISummaryGenerated($conn, $organizer_id,$event_title, $organizer_id, $event_id); //Notification
         exit;
     } else {
         echo "Error saving AI summary: " . mysqli_error($conn);
@@ -531,14 +536,14 @@ try {
     echo "\n\nMESSAGE:\n";
     echo $e->getMessage();
 
-    echo "\n\nFILE:\n";
-    echo $e->getFile();
+    // echo "\n\nFILE:\n";
+    // echo $e->getFile();
 
-    echo "\n\nLINE:\n";
-    echo $e->getLine();
+    // echo "\n\nLINE:\n";
+    // echo $e->getLine();
 
-    echo "\n\nTRACE:\n";
-    echo $e->getTraceAsString();
+    // echo "\n\nTRACE:\n";
+    // echo $e->getTraceAsString();
 
     file_put_contents(
         __DIR__ . '/ollama_error.log',

@@ -18,49 +18,154 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['active_role'])) {
 <head>
   <meta charset="UTF-8">
   <title>Login | EvalSmart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/login-style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    body { height: 100vh; }
-    .split { height: 100%; display: flex; flex-wrap: wrap; }
-    .split .left, .split .right { flex: 1 1 50%; min-height: 50vh; }
-    .left {
-        background: url('assets/images/bg-image-login-reg.svg') center/cover no-repeat;
-    }
-    @media (max-width: 768px) {
-      .split .left { display: none; }
-      .split .right { flex: 1 1 100%; }
-    }
-  </style>
+ 
 </head>
 <body>
-<div class="split">
-  <div class="left"></div>
+<div class="login-container">
 
-  <div class="right d-flex align-items-center justify-content-center">
-    <div class="w-75">
-      <h3 class="mb-4 text-center">Login to EvalSmart</h3>
-      <form id="loginForm" method="POST" class="needs-validation" novalidate>
-        <div class="mb-3">
-          <label>Email</label>
-          <input type="email" class="form-control" name="email" required>
-        </div>
-        <div class="mb-3">
-          <label>Password</label>
-          <input type="password" class="form-control" name="password" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-      </form>
-      <div class="text-center mt-3">
-        <a href="register.php">Create an Account</a>
-      </div>
+    <div class="row g-0 vh-100">
 
-    <div class="text-center mt-2">
-  <a href="#" id="forgotPasswordLink">Forgot Password?</a>
-</div>
+        <div class="col-lg-7 left-panel">
+
+    <div class="left-overlay">
+
+        <div class="left-content">
+
+            <!-- <img src="assets/images/Pilar_logo.jpg"
+                 class="school-logo"> -->
+
+            <h1>EvalSMART</h1>
+
+            <p>
+
+                Empowering quality assurance through
+AI-powered event evaluation,
+real-time analytics,
+and evidence-based decision making.
+
+            </p>
+
+            <div class="tagline">
+
+                Pilar College of Zamboanga City, Inc.
+
+            </div>
+
+        </div>
 
     </div>
-  </div>
+
+</div>
+
+        <!-- Right Panel -->
+
+        <div class="col-lg-5 right-panel">
+
+            <div class="login-card shadow">
+
+                <div class="text-center">
+
+                    <img src="assets/images/Pilar_logo.jpg"
+                         class="logo"
+                         alt="Logo">
+
+                    <h1 class="login-title">
+
+                        Welcome Back
+
+                    </h1>
+
+                    <p class="login-subtitle">
+
+                        Sign in to continue to your EvalSMART Dashboard.
+
+                    </p>
+
+                </div>
+
+                <form id="loginForm"
+                      method="POST"
+                      class="needs-validation"
+                      novalidate>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+
+                            Email Address
+
+                        </label>
+
+                        <input
+                            type="email"
+                            class="form-control"
+                            name="email"
+                            placeholder="Enter your institutional email"
+                            required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+
+                            Password
+
+                        </label>
+
+                        <input
+                            type="password"
+                            class="form-control"
+                            name="password"
+                            placeholder="Enter your password"
+                            required>
+
+                    </div>
+
+                    <div class="d-flex justify-content-end mb-4">
+
+                        <a href="#"
+                           id="forgotPasswordLink"
+                           class="forgot-link">
+
+                            Forgot Password?
+
+                        </a>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-login w-100">
+
+                        Sign In
+
+                    </button>
+
+                </form>
+
+                <div class="footer-text">
+
+                    <strong>EvalSMART</strong><br>
+
+                    Event Evaluation and Analytics Platform
+
+                    <br><br>
+
+                    Pilar College of Zamboanga City, Inc.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 <!-- Modal for selecting role -->

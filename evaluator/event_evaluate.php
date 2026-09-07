@@ -9,13 +9,14 @@ include '../includes/topbar.php';
 include '../includes/db_connect.php';
 
 // Get Event ID
-if (!isset($_GET['id'])) {
+if (!isset($_GET['event_id'])) {
   echo "<script>alert('Invalid request.'); window.location='dashboard.php';</script>";
   exit;
 }
 
-$event_id = intval($_GET['id']);
+$event_id = intval($_GET['event_id']);
 $user_id = $_SESSION['user_id'];
+$questionnaire_id  = intval($_GET['eq_id']);
 
 // Check if event exists
 $event_query = mysqli_query($conn, "SELECT * FROM events WHERE event_id='$event_id'");
@@ -27,17 +28,33 @@ if (mysqli_num_rows($event_query) == 0) {
 $event = mysqli_fetch_assoc($event_query);
 
 // Check if event has a questionnaire
+// $q_link = mysqli_query($conn, "
+//   SELECT
+//       q.*,
+//       s.scale_name
+//   FROM questionnaire q
+//   JOIN event_questionnaire eq
+//       ON q.questionnaire_id = eq.questionnaire_id
+//   LEFT JOIN evaluation_scales s
+//       ON q.scale_id = s.scale_id
+//   WHERE eq.event_id = '$event_id';
+  
+// ");
+
 $q_link = mysqli_query($conn, "
-  SELECT
-      q.*,
-      s.scale_name
-  FROM questionnaire q
-  JOIN event_questionnaire eq
-      ON q.questionnaire_id = eq.questionnaire_id
-  LEFT JOIN evaluation_scales s
-      ON q.scale_id = s.scale_id
-  WHERE eq.event_id = '$event_id'
-  LIMIT 1
+    SELECT
+        q.*,
+        s.scale_name,
+        eq.id AS eq_id
+    FROM event_questionnaire eq
+
+    INNER JOIN questionnaire q
+        ON q.questionnaire_id = eq.questionnaire_id
+
+    LEFT JOIN evaluation_scales s
+        ON q.scale_id = s.scale_id
+
+    WHERE eq.id = '$questionnaire_id'
 ");
 
 

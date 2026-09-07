@@ -24,7 +24,7 @@ $user = mysqli_fetch_assoc($res);
 
 // Check expiry
 if (strtotime($user['token_expiry']) < time()) {
-    die("Token has expired.");
+    die('<h1 class="text-center">Your token has expired. Please try again.</h1>');
 }
 ?>
 
@@ -40,7 +40,7 @@ if (strtotime($user['token_expiry']) < time()) {
 <body class="bg-light">
 
 <div class="container mt-5">
-  <div class="card mx-auto" style="max-width: 400px;">
+  <div class="card mx-auto border-0 shadow" style="max-width: 400px;">
     
     <div class="card-body">
       <h4 class="text-center mb-3">Reset Password</h4>
@@ -50,7 +50,18 @@ if (strtotime($user['token_expiry']) < time()) {
 
         <div class="mb-3">
           <label>New Password</label>
-          <input type="password" name="password" class="form-control" required>
+          <div class="input-group">
+            <input type="password" name="password" id="password" class="form-control" required>
+            <button class="btn btn-outline-secondary" type="button" id="togglePassword">Show</button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label>Confirm Password</label>
+          <div class="input-group">
+            <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
+            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">Show</button>
+          </div>
         </div>
 
         <button class="btn btn-primary w-100" id="resetBtn">
@@ -67,12 +78,46 @@ if (strtotime($user['token_expiry']) < time()) {
 <script src="../vendor/sweetalert2/sweetalert2.all.min.js"></script>
 
 <script>
+function togglePasswordField(buttonId, inputId) {
+  const button = document.getElementById(buttonId);
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    button.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    button.textContent = 'Show';
+  }
+}
+
+document.getElementById('togglePassword').addEventListener('click', function() {
+  togglePasswordField('togglePassword', 'password');
+});
+
+document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+  togglePasswordField('toggleConfirmPassword', 'confirm_password');
+});
+
 document.getElementById('resetForm').addEventListener('submit', async function(e){
   e.preventDefault();
 
   const btn = document.getElementById('resetBtn');
   btn.disabled = true;
   btn.innerHTML = 'Updating...';
+
+  const password = document.getElementById('password').value.trim();
+  const confirmPassword = document.getElementById('confirm_password').value.trim();
+
+  if (password !== confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Passwords do not match.'
+    });
+    btn.disabled = false;
+    btn.innerHTML = 'Update Password';
+    return;
+  }
 
   const formData = new FormData(this);
 

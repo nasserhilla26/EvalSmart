@@ -2,9 +2,9 @@
 session_start();
 header('Content-Type: application/json');
 
-// 🔥 DEBUG MODE (remove later)
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+// DEBUG MODE 
+// ini_set('display_errors', 1);
+// error_reporting(E_ALL);
 
 $response = ['success' => false, 'message' => 'Unknown error'];
 
@@ -18,7 +18,7 @@ try {
         throw new Exception('Invalid request.');
     }
 
-    // ✅ INCLUDE DB (CHECK PATH!)
+    // INCLUDE DB (CHECK PATH!)
     require_once __DIR__ . '/includes/db_connect.php';
 
     if (!$conn) {
@@ -29,7 +29,7 @@ try {
     $selected_role = (int)$_POST['role_id'];
 
     // =====================================================
-    // 🔄 REFRESH ROLES FROM DB
+    // REFRESH ROLES FROM DB
     // =====================================================
     $new_roles = [];
 
@@ -66,26 +66,26 @@ try {
 
     
     // =====================================================
-    // 🚫 BLOCK ORGANIZER IF NOT APPROVED
+    // BLOCK ORGANIZER IF NOT APPROVED
     // =====================================================
     if ($selected_role === 2 && $user['role_status'] !== 'Approved') {
         throw new Exception('Your organizer account is still pending approval.');
         }
 
     // =====================================================
-    // 🔒 VALIDATE ROLE
+    // VALIDATE ROLE
     // =====================================================
     if (!in_array($selected_role, $_SESSION['roles'])) {
-        throw new Exception('Invalid or unauthorized role.');
+        throw new Exception('Unauthorized role. You are not allowed to switch.');
     }
 
     // =====================================================
-    // ✅ ASSIGN ROLE
+    // ASSIGN ROLE
     // =====================================================
     $_SESSION['active_role'] = $selected_role;
 
     // =====================================================
-    // 🔁 REDIRECT
+    // REDIRECT
     // =====================================================
     switch ($selected_role) {
         case 1:

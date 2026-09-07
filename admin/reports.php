@@ -51,12 +51,12 @@ include '../includes/topbar.php';
                 </div>
 
                 <!-- Events -->
-                <div class="col-md-3">
+                <!-- <div class="col-md-3">
                     <label class="form-label">Event</label>
                     <select name="event_id" id="filter_event" class="form-select">
                         <option value="">ALL</option>
                     </select>
-                </div>
+                </div> -->
 
                 <!-- Search Button -->
                 <div class="col-md-3 mt-4">
@@ -137,7 +137,19 @@ $(document).ready(function() {
 
     columns: [
         { data: "event_title" },
-        { data: "event_date" },
+        {
+            data: "event_date",
+            render: function(data, type, row) {
+                if (!data) return "";
+                const date = new Date(data);
+                if (isNaN(date)) return data;
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+        },
         { data: "questionnaire_title" },
         { data: "avg_rating" },
         { data: "total_respondents" }
